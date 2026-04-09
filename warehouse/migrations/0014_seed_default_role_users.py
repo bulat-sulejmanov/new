@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.db import migrations
 
 
@@ -81,7 +82,7 @@ def seed_default_users(apps, schema_editor):
             user.is_active = True
 
         if created:
-            user.set_password(cfg['password'])
+            user.password = make_password(cfg['password'])
 
         user.save()
 
