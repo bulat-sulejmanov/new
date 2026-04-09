@@ -80,9 +80,45 @@ from django.views.decorators.cache import cache_page, never_cache
 
 # ==================== PERMISSIONS ====================
 
+ROLE_ADMIN = "Администратор"
+ROLE_PROCUREMENT = "Снабженец"
+ROLE_WAREHOUSE = "Кладовщик"
+
+
+def user_in_any_role(user, role_names):
+    if not user.is_authenticated:
+        return False
+    return user.groups.filter(name__in=role_names).exists()
+
+
+def can_manage_procurement(user):
+    return (
+        user.is_authenticated
+        and (
+            user.is_superuser
+            or user_in_any_role(user, [ROLE_ADMIN, ROLE_PROCUREMENT])
+            or user.is_staff
+        )
+    )
+
+
+def can_manage_warehouse(user):
+    return (
+        user.is_authenticated
+        and (
+            user.is_superuser
+            or user_in_any_role(user, [ROLE_ADMIN, ROLE_WAREHOUSE])
+            or user.is_staff
+        )
+    )
+
+
+def has_staff_access(user):
+    return can_manage_procurement(user) or can_manage_warehouse(user)
+
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.is_staff
+        return has_staff_access(self.request.user)
     
     def handle_no_permission(self):
         messages.error(self.request, "Доступ запрещен. Требуются права администратора.")
@@ -92,7 +128,7 @@ class StaffRequiredMixin(UserPassesTestMixin):
 def can_user_print_supply_request(user, supply_request):
     if not user.is_authenticated:
         return False
-    if user.is_staff or user.is_superuser:
+    if has_staff_access(user) or user.is_superuser:
         return True
     early_statuses = {'DRAFT', 'APPROVED'}
     return supply_request.created_by == user and supply_request.status in early_statuses
@@ -148,7 +184,7 @@ def dashboard(request):
     moves_query = StockMove.objects.select_related(
         "product", "from_location", "to_location", "created_by"
     )
-    if not request.user.is_staff:
+    if not has_staff_access(request.user):
         moves_query = moves_query.filter(created_by=request.user)
     last_moves = moves_query.order_by("-created_at")[:10]
 
@@ -185,7 +221,7 @@ def dashboard(request):
         alerts = []
 
     reorder_suggestions = []
-    if request.user.is_staff:
+    if can_manage_procurement(request.user):
         try:
             reorder_suggestions = optimize_reorder_suggestions()[:10]
         except Exception:
@@ -448,7 +484,7 @@ class ProductList(LoginRequiredMixin, ListView):
 @transaction.atomic
 def product_set_price(request):
     """Быстрая установка цены товара из списка"""
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "Нет прав для установки цен.")
         return redirect('product_list')
     
@@ -772,7 +808,7 @@ class StockMoveList(LoginRequiredMixin, ListView):
         queryset = StockMove.objects.select_related(
             "product", "from_location", "to_location", "created_by", "batch"
         )
-        if not self.request.user.is_staff:
+        if not has_staff_access(self.request.user):
             queryset = queryset.filter(created_by=self.request.user)
         
         q = self.request.GET.get('q')
@@ -813,7 +849,7 @@ class StockMoveList(LoginRequiredMixin, ListView):
 
 @login_required
 def stockmove_create(request):
-    if not request.user.is_staff:
+    if not can_manage_warehouse(request.user):
         messages.error(request, "У вас нет прав для создания движений.")
         return redirect("dashboard")
     
@@ -972,7 +1008,7 @@ class POList(LoginRequiredMixin, ListView):
 
 @login_required
 def po_create(request):
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "У вас нет прав для создания заказов.")
         return redirect("dashboard")
     
@@ -1305,7 +1341,7 @@ def po_delete(request, pk):
     """Удаление заказа поставщику из карточки редактирования"""
     po = get_object_or_404(PurchaseOrder.objects.select_related('supplier'), pk=pk)
 
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "У вас нет прав для удаления заказов.")
         return redirect("po_list")
 
@@ -1337,7 +1373,7 @@ def po_export_docx(request, pk):
         pk=pk,
     )
 
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "У вас нет прав для выгрузки заказов.")
         return redirect("po_list")
 
@@ -1366,7 +1402,7 @@ def po_export_pdf(request, pk):
         pk=pk,
     )
 
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "У вас нет прав для выгрузки заказов.")
         return redirect("po_list")
 
@@ -1390,7 +1426,7 @@ def po_edit(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     
     # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: проверка прав
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "У вас нет прав для редактирования заказов.")
         return redirect("po_list")
     
@@ -1532,7 +1568,7 @@ class SupplyRequestList(LoginRequiredMixin, ListView):
             'object', 'created_by'
         ).prefetch_related('items__product')
 
-        if not self.request.user.is_staff:
+        if not has_staff_access(self.request.user):
             queryset = queryset.filter(created_by=self.request.user)
 
         search_query = (self.request.GET.get('q') or '').strip()
@@ -1615,7 +1651,7 @@ class SupplyRequestDetail(LoginRequiredMixin, DetailView):
         )
         
         obj = super().get_object(queryset)
-        if not self.request.user.is_staff and obj.created_by != self.request.user:
+        if not has_staff_access(self.request.user) and obj.created_by != self.request.user:
             raise PermissionDenied("У вас нет доступа к этой заявке.")
         return obj
     
@@ -1672,7 +1708,7 @@ class SupplyRequestDetail(LoginRequiredMixin, DetailView):
 def supply_request_add_item(request, pk):
     supply_request = get_object_or_404(SupplyRequest, pk=pk)
     
-    if request.user != supply_request.created_by and not request.user.is_staff:
+    if request.user != supply_request.created_by and not has_staff_access(request.user):
         messages.error(request, "Нет доступа к этой заявке.")
         return redirect("supplyrequest_list")
     
@@ -1824,7 +1860,7 @@ def _auto_create_pick_tasks(request, supply_request, user):
 @transaction.atomic
 def supply_request_update_status(request, pk):
     """Обновление статуса с проверкой на пустую заявку"""
-    if not request.user.is_staff:
+    if not can_manage_procurement(request.user):
         messages.error(request, "Только снабженец может менять статус.")
         return redirect("supplyrequest_detail", pk=pk)
     
@@ -2057,7 +2093,7 @@ class PickTaskDetail(LoginRequiredMixin, DetailView):
         user = self.request.user
         
         # Суперпользователь и staff имеют полный доступ
-        if user.is_staff or user.is_superuser:
+        if has_staff_access(user) or user.is_superuser:
             return obj
             
         # Обычный пользователь — только свои назначенные задачи
@@ -2068,7 +2104,7 @@ class PickTaskDetail(LoginRequiredMixin, DetailView):
             )
             
         # Нельзя смотреть чужие задачи по чужим заявкам (доп. защита)
-        if obj.supply_request and not user.is_staff:
+        if obj.supply_request and not has_staff_access(user):
             if obj.supply_request.created_by != user and obj.assigned_to != user:
                 raise PermissionDenied("Доступ запрещен")
                 
@@ -2078,7 +2114,7 @@ class PickTaskDetail(LoginRequiredMixin, DetailView):
 @login_required
 def picktask_create(request):
     """Создание новой задачи на отбор с автоподстановкой из заявки"""
-    if not request.user.is_staff:
+    if not can_manage_warehouse(request.user):
         messages.error(request, "Доступ запрещен. Только для персонала склада.")
         return redirect("dashboard")
     
@@ -2296,7 +2332,7 @@ def picktask_create(request):
 @transaction.atomic
 def picktask_complete(request, pk):
     """Выполнение задачи с атомарными блокировками в модели"""
-    if not request.user.is_staff:
+    if not can_manage_warehouse(request.user):
         messages.error(request, "Только кладовщик может выполнять задачи.")
         return redirect("dashboard")
     
@@ -2402,7 +2438,7 @@ def supply_request_edit_item(request, pk, item_pk):
     item = get_object_or_404(SupplyRequestItem, pk=item_pk, request=supply_request)
     
     # Проверка прав
-    if request.user != supply_request.created_by and not request.user.is_staff:
+    if request.user != supply_request.created_by and not can_manage_procurement(request.user):
         messages.error(request, "Нет доступа к редактированию этой заявки.")
         return redirect("supplyrequest_detail", pk=pk)
     
@@ -2459,7 +2495,7 @@ def supply_request_delete_item(request, pk, item_pk):
     )
 
     # Проверка прав
-    if request.user != supply_request.created_by and not request.user.is_staff:
+    if request.user != supply_request.created_by and not can_manage_procurement(request.user):
         messages.error(request, "Нет доступа к удалению позиций этой заявки.")
         return redirect("supplyrequest_detail", pk=pk)
 
