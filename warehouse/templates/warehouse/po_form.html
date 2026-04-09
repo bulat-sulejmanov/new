@@ -1,0 +1,190 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    
+    {% if suggested_items %}
+    <!-- БЛОК АВТОПОДСТАНОВКИ -->
+    <div class="alert alert-info mb-4 border-info border-2">
+      <h5 class="alert-heading">
+        <i class="bi bi-magic me-2"></i>
+        {% if is_reorder_mode %}
+          Автоподбор товаров к закупке
+        {% else %}
+          Автоматическое создание заказа
+        {% endif %}
+      </h5>
+      
+      {% if default_supplier %}
+      <div class="alert alert-light border mb-3">
+        <i class="bi bi-truck me-2"></i>
+        <strong>Основной поставщик:</strong> {{ default_supplier.name }}
+        <br><small class="text-muted">Для товаров без цен от этого поставщика будут использованы альтернативные</small>
+      </div>
+      {% endif %}
+      
+      <div class="table-responsive mt-3">
+        <table class="table table-sm table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Артикул</th>
+              <th>Наименование</th>
+              <th class="text-center">Кол-во</th>
+              <th class="text-end">Цена</th>
+              <th class="text-end">Сумма</th>
+              <th class="text-end">Причина</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in suggested_items %}
+            <tr class="{% if not item.price %}table-warning{% endif %}">
+              <td class="fw-bold">{{ item.product.sku }}</td>
+              <td>{{ item.product.name|truncatechars:40 }}</td>
+              <td class="text-center fw-bold">
+                {{ item.quantity|floatformat:0 }} {{ item.product.get_unit_display }}
+              </td>
+              <td class="text-end zzz-mono">
+                {% if item.price %}
+                  {{ item.price|floatformat:2 }} ₽
+                {% else %}
+                  <span class="text-warning">—</span>
+                {% endif %}
+              </td>
+              <td class="text-end zzz-mono fw-bold {% if item.sum %}text-success{% endif %}">
+                {% if item.sum %}
+                  {{ item.sum|floatformat:2 }} ₽
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end small">{{ item.reason }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          {% if not is_reorder_mode and suggested_items.0.sum %}
+          <tfoot>
+            <tr class="table-active">
+              <td colspan="4" class="text-end fw-bold">ИТОГО:</td>
+              <td class="text-end zzz-mono fw-bold fs-5 text-success">
+                {{ suggested_items.0.sum|floatformat:2 }} ₽
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+      
+      {% if is_reorder_mode %}
+      <div class="alert alert-warning mt-3 mb-0">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Групповой заказ:</strong> проверьте цены вручную — товары могут быть от разных поставщиков.
+      </div>
+      {% endif %}
+      
+      {% if preselected_product and not auto_price %}
+      <div class="alert alert-warning mt-3 mb-0">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        <strong>Цена не найдена!</strong> 
+        У товара нет истории цен. Укажите цену вручную при получении товара или в карточке заказа.
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">
+          {% if is_reorder_mode %}
+            <i class="bi bi-cart-plus me-2"></i>ГРУППОВОЙ ЗАКАЗ ПОСТАВЩИКУ
+          {% elif preselected_product %}
+            <i class="bi bi-lightning-charge me-2"></i>БЫСТРЫЙ ЗАКАЗ: {{ preselected_product.sku }}
+          {% else %}
+            <i class="bi bi-file-text me-2"></i>ЗАКАЗ ПОСТАВЩИКУ
+          {% endif %}
+        </h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          <!-- Скрытые поля -->
+          {% if preselected_product and not is_reorder_mode %}
+          <input type="hidden" name="auto_product_id" value="{{ preselected_product.id }}">
+          <input type="hidden" name="auto_quantity" value="{{ auto_quantity }}">
+          <input type="hidden" name="auto_price" value="{{ auto_price|default:'' }}">
+          {% endif %}
+          
+          {% if is_reorder_mode %}
+            {% for item in suggested_items %}
+            <input type="hidden" name="auto_product_ids" value="{{ item.product.id }}">
+            <input type="hidden" name="auto_quantities" value="{{ item.quantity }}">
+            <input type="hidden" name="auto_prices" value="{{ item.price|default:'' }}">
+            {% endfor %}
+          {% endif %}
+          
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Номер заказа <span class="text-danger">*</span></label>
+              {{ form.number }}
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Поставщик <span class="text-danger">*</span></label>
+              {{ form.supplier }}
+              {% if preselected_product and preselected_product.supplier %}
+              <div class="form-text text-success">
+                <i class="bi bi-check-circle me-1"></i>
+                Основной поставщик товара
+              </div>
+              {% elif preselected_product and not preselected_product.supplier and auto_price %}
+              <div class="form-text text-info">
+                <i class="bi bi-info-circle me-1"></i>
+                Автоподбор по мин. цене
+              </div>
+              {% endif %}
+            </div>
+            
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Статус</label>
+              {{ form.status }}
+            </div>
+            
+            <div class="col-md-6">
+            <label class="form-label">Ожидаемая дата</label>
+            {{ form.expected_date }}
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Примечания</label>
+              {{ form.notes }}
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-zzz-secondary btn-lg">
+              <i class="bi bi-x-lg me-1"></i>ОТМЕНА
+            </a>
+            <button type="submit" class="btn btn-zzz-primary btn-lg">
+              {% if is_reorder_mode %}
+                <i class="bi bi-cart-plus me-2"></i>
+                СОЗДАТЬ ЗАКАЗ ({{ suggested_items|length }} позиций)
+              {% elif preselected_product %}
+                <i class="bi bi-lightning-charge me-2"></i>
+                {% if auto_price %}
+                  СОЗДАТЬ ЗАКАЗ НА {{ suggested_items.0.sum|floatformat:0 }} ₽
+                {% else %}
+                  СОЗДАТЬ ЗАКАЗ (без цены)
+                {% endif %}
+              {% else %}
+                <i class="bi bi-save me-2"></i>СОЗДАТЬ ПУСТОЙ ЗАКАЗ
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

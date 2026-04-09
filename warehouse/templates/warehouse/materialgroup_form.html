@@ -1,0 +1,39 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-collection me-2"></i>ГРУППА МАТЕРИАЛОВ</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Код группы <span class="text-danger">*</span></label>
+              {{ form.code }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Категория <span class="text-danger">*</span></label>
+              {{ form.category }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Наименование <span class="text-danger">*</span></label>
+              {{ form.name }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Описание</label>
+              {{ form.description }}
+            </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'materialgroup_list' %}" class="btn btn-zzz-secondary">ОТМЕНА</a>
+            <button type="submit" class="btn btn-zzz-primary">СОХРАНИТЬ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

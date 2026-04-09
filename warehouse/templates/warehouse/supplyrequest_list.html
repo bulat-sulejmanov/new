@@ -1,0 +1,179 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-file-earmark-text me-2"></i>ЗАЯВКИ НА СНАБЖЕНИЕ</h3>
+  <a href="{% url 'supplyrequest_create' %}" class="btn btn-zzz-primary">
+    <i class="bi bi-plus-lg me-1"></i>НОВАЯ ЗАЯВКА
+  </a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center py-3">
+    <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i>ФИЛЬТРЫ И ПОИСК</span>
+    <a href="{% url 'supplyrequest_list' %}" class="btn btn-sm btn-zzz-secondary">
+      <i class="bi bi-x-lg me-1"></i>Сбросить
+    </a>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-xl-5 col-lg-5 col-md-6">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">
+          <i class="bi bi-search me-1"></i>Поиск (номер/объект/адрес/контакт/заявитель)
+        </label>
+        {{ filter_form.q }}
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-6">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Объект</label>
+        {{ filter_form.object }}
+      </div>
+      <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Приоритет</label>
+        {{ filter_form.priority }}
+      </div>
+      <div class="col-xl-1 col-lg-1 col-md-2 col-sm-4">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Статус</label>
+        {{ filter_form.status }}
+      </div>
+      <div class="col-xl-1 col-lg-1 col-md-1 col-sm-2">
+        <div class="d-grid">
+          <button type="submit" class="btn btn-zzz-primary btn-sm">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle" style="min-width: 1100px;">
+        <thead class="sticky-top">
+          <tr>
+            <th class="zzz-dim ps-4">НОМЕР</th>
+            <th class="zzz-dim">ОБЪЕКТ / ДОСТАВКА</th>
+            {% if user.is_staff %}<th class="zzz-dim">ЗАЯВИТЕЛЬ</th>{% endif %}
+            <th class="zzz-dim">ДАТА СОЗДАНИЯ</th>
+            <th class="zzz-dim">ТРЕБУЕМАЯ ДАТА</th>
+            <th class="zzz-dim">ПРИОРИТЕТ</th>
+            <th class="zzz-dim">СТАТУС</th>
+            <th class="zzz-dim text-end pe-4">ДЕЙСТВИЯ</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in supply_requests %}
+          <tr>
+            <td class="ps-4 fw-bold zzz-text-glow">{{ req.number }}</td>
+            <td>
+              <div class="d-flex flex-column">
+                {% if req.object %}
+                  <span>{{ req.object.code }} — {{ req.object.name }}</span>
+                  <small class="text-muted">{{ req.object.get_object_type_display }}</small>
+                {% else %}
+                  <span class="text-muted">{{ req.delivery_address|default:"Без объекта" }}</span>
+                {% endif %}
+                {% if req.contact_person or req.contact_phone %}
+                  <small class="text-muted">
+                    {{ req.contact_person|default:"—" }}
+                    {% if req.contact_phone %} · {{ req.contact_phone }}{% endif %}
+                  </small>
+                {% endif %}
+              </div>
+            </td>
+            {% if user.is_staff %}
+            <td>
+              {% if req.created_by %}
+                <div class="d-flex flex-column">
+                  <span>{{ req.created_by.get_full_name|default:req.created_by.username }}</span>
+                  {% if req.created_by.get_full_name %}
+                    <small class="text-muted">@{{ req.created_by.username }}</small>
+                  {% endif %}
+                </div>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            {% endif %}
+            <td>{{ req.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ req.required_date|date:"d.m.Y" }}</td>
+            <td>
+              {% if req.priority == 'CRITICAL' %}
+                <span class="badge bg-danger">КРИТИЧЕСКИЙ</span>
+              {% elif req.priority == 'HIGH' %}
+                <span class="badge bg-warning text-dark">ВЫСОКИЙ</span>
+              {% elif req.priority == 'NORMAL' %}
+                <span class="badge bg-info text-dark">НОРМАЛЬНЫЙ</span>
+              {% else %}
+                <span class="badge bg-secondary">НИЗКИЙ</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if req.status == 'DRAFT' %}
+                <span class="badge bg-secondary">ЧЕРНОВИК</span>
+              {% elif req.status == 'APPROVED' %}
+                <span class="badge bg-info text-dark">УТВЕРЖДЕНО</span>
+              {% elif req.status == 'IN_WORK' %}
+                <span class="badge bg-primary">В РАБОТЕ</span>
+              {% elif req.status == 'PARTIAL' %}
+                <span class="badge bg-warning text-dark">ЧАСТИЧНО</span>
+              {% elif req.status == 'COMPLETED' %}
+                <span class="badge bg-success">ВЫПОЛНЕНО</span>
+              {% else %}
+                <span class="badge bg-dark">ОТМЕНЕНО</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-4">
+              <a href="{% url 'supplyrequest_detail' req.pk %}" class="btn btn-zzz-secondary btn-sm">
+                <i class="bi bi-eye"></i> ОТКРЫТЬ
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user.is_staff %}8{% else %}7{% endif %}" class="text-center py-4 text-white-50">
+              <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+              {% if user.is_staff %}
+                ЗАЯВКИ НЕ НАЙДЕНЫ
+              {% else %}
+                ВЫ ЕЩЕ НЕ СОЗДАВАЛИ ЗАЯВОК
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if is_paginated %}
+  <div class="card-footer border-top border-secondary border-opacity-25 py-2">
+    <nav>
+      <ul class="pagination pagination-sm justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1{{ query_params }}"><i class="bi bi-chevron-double-left"></i></a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}"><i class="bi bi-chevron-left"></i></a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        <li class="page-item active">
+          <span class="page-link" style="background: var(--zzz-accent); color: #000; border-color: var(--zzz-accent);">
+            {{ page_obj.number }} / {{ paginator.num_pages }}
+          </span>
+        </li>
+
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}"><i class="bi bi-chevron-right"></i></a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}{{ query_params }}"><i class="bi bi-chevron-double-right"></i></a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

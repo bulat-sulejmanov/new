@@ -1,0 +1,74 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">
+          <i class="bi bi-geo-alt me-2"></i>
+          {% if object %}РЕДАКТИРОВАНИЕ ЛОКАЦИИ{% else %}НОВАЯ ЛОКАЦИЯ{% endif %}
+        </h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Код локации <span class="text-danger">*</span></label>
+              {{ form.code }}
+              <div class="form-text">Например: A-01, PICK-02, SHIP-01</div>
+              {% if form.code.errors %}
+                <div class="text-danger small">{{ form.code.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Зона <span class="text-danger">*</span></label>
+              {{ form.area }}
+              {% if form.area.errors %}
+                <div class="text-danger small">{{ form.area.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Ёмкость</label>
+              {{ form.capacity }}
+              <div class="form-text">Условная вместимость ячейки/зоны</div>
+              {% if form.capacity.errors %}
+                <div class="text-danger small">{{ form.capacity.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Условия хранения</label>
+              {{ form.storage_conditions }}
+              <div class="form-text">Например: сухо, +5..+25, опасные вещества</div>
+              {% if form.storage_conditions.errors %}
+                <div class="text-danger small">{{ form.storage_conditions.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Описание</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="text-danger small">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'location_list' %}" class="btn btn-zzz-secondary">
+              <i class="bi bi-x-lg me-2"></i>ОТМЕНА
+            </a>
+            <button type="submit" class="btn btn-zzz-primary">
+              <i class="bi bi-save me-2"></i>СОХРАНИТЬ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

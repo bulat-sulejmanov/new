@@ -1,0 +1,498 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-box-seam me-2"></i>СКЛАДСКИЕ ТОВАРЫ</h3>
+  {% if user.is_staff %}
+    <a href="{% url 'product_create' %}" class="btn btn-zzz-primary">
+      <i class="bi bi-plus-lg me-1"></i>НОВАЯ ЗАПИСЬ
+    </a>
+  {% endif %}
+</div>
+
+<!-- ПАНЕЛЬ ФИЛЬТРОВ -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center py-3">
+    <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i>ФИЛЬТРЫ И ПОИСК</span>
+    <a href="{% url 'product_list' %}" class="btn btn-sm btn-zzz-secondary">
+      <i class="bi bi-x-lg me-1"></i>Сбросить
+    </a>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-xl-5 col-lg-5 col-md-6">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">
+          <i class="bi bi-search me-1"></i>Поиск (артикул/название/штрихкод)
+        </label>
+        {{ filter_form.q }}
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">
+          <i class="bi bi-truck me-1"></i>Поставщик
+        </label>
+        {{ filter_form.supplier }}
+      </div>
+      <div class="col-xl-1 col-lg-1 col-md-2 col-sm-4">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">ABC</label>
+        {{ filter_form.abc_class }}
+      </div>
+      <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Статус</label>
+        {{ filter_form.is_active }}
+      </div>
+      <div class="col-xl-1 col-lg-1 col-md-4 col-sm-4">
+        <div class="d-grid gap-2">
+          <div class="form-check mb-0 small">
+            {{ filter_form.has_stock }}
+            <label class="form-check-label" for="{{ filter_form.has_stock.id_for_label }}" style="font-size: 0.8rem;">
+              В наличии
+            </label>
+          </div>
+          <button type="submit" class="btn btn-zzz-primary btn-sm">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ТАБЛИЦА -->
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle" style="min-width: 1000px;">
+        <thead class="sticky-top">
+          <tr>
+            <th class="zzz-dim ps-4" style="width: 18%;">АРТИКУЛ</th>
+            <th class="zzz-dim" style="width: 35%;">НАИМЕНОВАНИЕ</th>
+            <th class="zzz-dim text-center" style="width: 10%;">ЕД.</th>
+            <th class="zzz-dim" style="width: 20%;">ПОСТАВЩИК</th>
+            <th class="zzz-dim text-center" style="width: 10%;">ABC</th>
+            <th class="zzz-dim text-end" style="width: 15%;">ОСТАТОК</th>
+            {% if user.is_staff %}<th class="text-end zzz-dim pe-4" style="width: 12%;">ДЕЙСТВИЯ</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for obj in products %}
+          <tr class="product-row" 
+              data-product-id="{{ obj.id }}"
+              data-product-sku="{{ obj.sku }}"
+              data-product-name="{{ obj.name }}"
+              data-product-barcode="{{ obj.barcode|default:'' }}"
+              data-product-unit="{{ obj.get_unit_display }}"
+              data-product-supplier="{{ obj.supplier|default:'—' }}"
+              data-product-abc="{{ obj.abc_class }}"
+              data-product-min-stock="{{ obj.min_stock }}"
+              data-product-max-stock="{{ obj.max_stock }}"
+              data-product-reorder-point="{{ obj.reorder_point }}"
+              data-product-safety-stock="{{ obj.safety_stock }}"
+              data-product-lead-time="{{ obj.lead_time_days }}"
+              data-product-critical-level="{{ obj.critical_level }}"
+              data-product-is-oilfield="{{ obj.is_oilfield_specific|yesno:'Да,Нет' }}"
+              data-product-tnvd="{{ obj.tnvd_code|default:'—' }}"
+              data-product-total-qty="{{ obj.total_quantity|default:0 }}"
+              data-product-is-active="{{ obj.is_active|yesno:'Активен,Неактивен' }}"
+              data-product-price="{{ obj.current_price|default:'' }}">
+            <td class="ps-4">
+              <span class="zzz-text-glow fw-bold" style="font-size: 1.1rem;">{{ obj.sku }}</span>
+            </td>
+            <td>
+              <div class="d-flex flex-column">
+                <span class="fw-bold product-name-hover" style="cursor: help; border-bottom: 1px dashed rgba(255,255,255,0.3); display: inline-block;">
+                  {{ obj.name }}
+                  <i class="bi bi-info-circle ms-1 text-muted small"></i>
+                </span>
+                {% if obj.barcode %}
+                  <small class="text-muted"><i class="bi bi-upc-scan me-1"></i>{{ obj.barcode }}</small>
+                {% endif %}
+              </div>
+            </td>
+            <td class="zzz-mono text-center">{{ obj.get_unit_display }}</td>
+            <td class="zzz-dim">{{ obj.supplier|default:"—" }}</td>
+            <td class="text-center">
+              {% if obj.abc_class == 'A' %}
+                <span class="badge bg-danger">{{ obj.abc_class }}</span>
+              {% elif obj.abc_class == 'B' %}
+                <span class="badge bg-warning text-dark">{{ obj.abc_class }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ obj.abc_class }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if obj.total_quantity %}
+                <span class="zzz-mono fw-bold" style="color: var(--zzz-accent); font-size: 1.1rem;">
+                  {{ obj.total_quantity|floatformat:0 }}
+                </span>
+              {% else %}
+                <span class="text-danger fw-bold">0</span>
+              {% endif %}
+            </td>
+            {% if user.is_staff %}
+            <td class="text-end pe-4">
+              <div class="btn-group btn-group-sm">
+                <a class="btn btn-zzz-secondary" href="{% url 'product_update' obj.pk %}" title="Изменить">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a class="btn btn-zzz-danger" href="{% url 'product_delete' obj.pk %}" title="Удалить">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user.is_staff %}7{% else %}6{% endif %}" class="text-center py-5 zzz-dim">
+              <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+              {% if request.GET.q %}
+                <span class="fs-5">Ничего не найдено по запросу "{{ request.GET.q }}"</span>
+                <br><a href="{% url 'product_list' %}" class="btn btn-zzz-secondary btn-sm mt-3">Показать все товары</a>
+              {% else %}
+                БАЗА ДАННЫХ ПУСТА
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  {% if is_paginated %}
+  <div class="card-footer border-top border-secondary border-opacity-25 py-2">
+    <nav>
+      <ul class="pagination pagination-sm justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{{ query_params }}"><i class="bi bi-chevron-double-left"></i></a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+        
+        <li class="page-item active">
+          <span class="page-link" style="background: var(--zzz-accent); color: #000; border-color: var(--zzz-accent);">
+            {{ page_obj.number }} / {{ paginator.num_pages }}
+          </span>
+        </li>
+        
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ paginator.num_pages }}{{ query_params }}">
+              <i class="bi bi-chevron-double-right"></i>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- КАСТОМНОЕ ВСПЛЫВАЮЩЕЕ ОКНО -->
+<div id="product-tooltip" class="product-tooltip">
+  <div class="tooltip-header">
+    <span class="tooltip-sku" id="tooltip-sku"></span>
+    <span class="tooltip-abc" id="tooltip-abc"></span>
+  </div>
+  <div class="tooltip-body">
+    <h6 class="tooltip-name" id="tooltip-name"></h6>
+    
+    <div class="tooltip-section">
+      <div class="tooltip-row">
+        <span class="tooltip-label"><i class="bi bi-upc-scan me-1"></i>Штрихкод:</span>
+        <span class="tooltip-value" id="tooltip-barcode"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label"><i class="bi bi-box me-1"></i>Ед. изм.:</span>
+        <span class="tooltip-value" id="tooltip-unit"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label"><i class="bi bi-truck me-1"></i>Поставщик:</span>
+        <span class="tooltip-value" id="tooltip-supplier"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label"><i class="bi bi-currency-exchange me-1"></i>Цена:</span>
+        <span class="tooltip-value fw-bold text-success" id="tooltip-price"></span>
+      </div>
+    </div>
+    
+    <div class="tooltip-section tooltip-stock">
+      <div class="section-title"><i class="bi bi-database me-1"></i>Запасы</div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">В наличии:</span>
+        <span class="tooltip-value fw-bold" id="tooltip-total-qty"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Мин. запас:</span>
+        <span class="tooltip-value" id="tooltip-min-stock"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Макс. запас:</span>
+        <span class="tooltip-value" id="tooltip-max-stock"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Точка заказа:</span>
+        <span class="tooltip-value" id="tooltip-reorder"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Страховой запас:</span>
+        <span class="tooltip-value" id="tooltip-safety"></span>
+      </div>
+    </div>
+    
+    <div class="tooltip-section">
+      <div class="section-title"><i class="bi bi-gear me-1"></i>Параметры</div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Срок поставки:</span>
+        <span class="tooltip-value" id="tooltip-lead-time"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Критичность:</span>
+        <span class="tooltip-value" id="tooltip-critical"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Для добычи:</span>
+        <span class="tooltip-value" id="tooltip-oilfield"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">ТНВЭД:</span>
+        <span class="tooltip-value" id="tooltip-tnvd"></span>
+      </div>
+      <div class="tooltip-row">
+        <span class="tooltip-label">Статус:</span>
+        <span class="tooltip-value" id="tooltip-status"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.product-tooltip {
+  position: fixed;
+  display: none;
+  width: 380px;
+  background: linear-gradient(135deg, rgba(20,20,25,0.98) 0%, rgba(10,10,15,0.99) 100%);
+  border: 3px solid rgba(255,255,255,0.4);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  z-index: 9999;
+  overflow: hidden;
+  animation: tooltip-appear 0.2s ease-out;
+}
+
+@keyframes tooltip-appear {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+.tooltip-sku {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.tooltip-abc {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 2px solid;
+  text-transform: uppercase;
+}
+
+.tooltip-abc.abc-a { background: rgba(196, 92, 92, 0.2); color: #e8a0a0; border-color: rgba(196, 92, 92, 0.6); }
+.tooltip-abc.abc-b { background: rgba(204, 138, 51, 0.2); color: #e6b366; border-color: rgba(204, 138, 51, 0.6); }
+.tooltip-abc.abc-c { background: rgba(108, 117, 125, 0.2); color: #aaa; border-color: rgba(108, 117, 125, 0.6); }
+
+.tooltip-body {
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.tooltip-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  line-height: 1.4;
+}
+
+.tooltip-section {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.tooltip-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.tooltip-row:last-child { margin-bottom: 0; }
+
+.tooltip-label {
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-value {
+  color: #fff;
+  font-weight: 500;
+  text-align: right;
+}
+
+.tooltip-stock .tooltip-value.fw-bold {
+  color: var(--zzz-accent);
+  font-size: 1.1rem;
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.product-row { transition: all 0.2s ease; }
+.product-row:hover { background: rgba(255,255,255,0.08) !important; }
+
+.product-name-hover {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.product-name-hover:hover {
+  color: var(--zzz-accent);
+  border-bottom-color: var(--zzz-accent) !important;
+}
+
+:root[data-theme="light"] .product-tooltip {
+  background: linear-gradient(135deg, rgba(220,220,220,0.98) 0%, rgba(200,200,200,0.99) 100%);
+  border-color: #666;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+:root[data-theme="light"] .tooltip-header { background: rgba(0,0,0,0.05); border-bottom-color: #888; }
+:root[data-theme="light"] .tooltip-sku { color: #222; text-shadow: none; }
+:root[data-theme="light"] .tooltip-name { color: #333; border-bottom-color: rgba(0,0,0,0.1); }
+:root[data-theme="light"] .tooltip-label { color: #666; }
+:root[data-theme="light"] .tooltip-value { color: #222; }
+:root[data-theme="light"] .section-title { color: #555; }
+:root[data-theme="light"] .tooltip-section { border-bottom-color: rgba(0,0,0,0.1); }
+:root[data-theme="light"] .product-row:hover { background: rgba(0,0,0,0.05) !important; }
+:root[data-theme="light"] .product-name-hover:hover { color: #000; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tooltip = document.getElementById('product-tooltip');
+  const rows = document.querySelectorAll('.product-row');
+  let hideTimeout;
+  
+  rows.forEach(row => {
+    const nameCell = row.querySelector('.product-name-hover');
+    
+    nameCell.addEventListener('mouseenter', function(e) {
+      clearTimeout(hideTimeout);
+      
+      document.getElementById('tooltip-sku').textContent = row.dataset.productSku;
+      document.getElementById('tooltip-name').textContent = row.dataset.productName;
+      document.getElementById('tooltip-barcode').textContent = row.dataset.productBarcode || '—';
+      document.getElementById('tooltip-unit').textContent = row.dataset.productUnit;
+      document.getElementById('tooltip-supplier').textContent = row.dataset.productSupplier;
+      
+      const price = row.dataset.productPrice;
+      document.getElementById('tooltip-price').textContent = price ? price + ' ₽' : 'Не установлена';
+      
+      document.getElementById('tooltip-total-qty').textContent = row.dataset.productTotalQty + ' ' + row.dataset.productUnit;
+      document.getElementById('tooltip-min-stock').textContent = row.dataset.productMinStock + ' ' + row.dataset.productUnit;
+      document.getElementById('tooltip-max-stock').textContent = row.dataset.productMaxStock + ' ' + row.dataset.productUnit;
+      document.getElementById('tooltip-reorder').textContent = row.dataset.productReorderPoint + ' ' + row.dataset.productUnit;
+      document.getElementById('tooltip-safety').textContent = row.dataset.productSafetyStock + ' ' + row.dataset.productUnit;
+      document.getElementById('tooltip-lead-time').textContent = row.dataset.productLeadTime + ' дн.';
+      document.getElementById('tooltip-critical').textContent = row.dataset.productCriticalLevel + '/5';
+      document.getElementById('tooltip-oilfield').textContent = row.dataset.productIsOilfield;
+      document.getElementById('tooltip-tnvd').textContent = row.dataset.productTnvd;
+      document.getElementById('tooltip-status').textContent = row.dataset.productIsActive;
+      
+      const abcBadge = document.getElementById('tooltip-abc');
+      abcBadge.textContent = 'ABC-' + row.dataset.productAbc;
+      abcBadge.className = 'tooltip-abc abc-' + row.dataset.productAbc.toLowerCase();
+      
+      tooltip.style.display = 'block';
+      positionTooltip(e);
+    });
+    
+    nameCell.addEventListener('mousemove', function(e) { positionTooltip(e); });
+    nameCell.addEventListener('mouseleave', function() {
+      hideTimeout = setTimeout(() => { tooltip.style.display = 'none'; }, 100);
+    });
+  });
+  
+  tooltip.addEventListener('mouseenter', function() { clearTimeout(hideTimeout); });
+  tooltip.addEventListener('mouseleave', function() {
+    hideTimeout = setTimeout(() => { tooltip.style.display = 'none'; }, 100);
+  });
+  
+  function positionTooltip(e) {
+    const tooltipWidth = tooltip.offsetWidth;
+    const tooltipHeight = tooltip.offsetHeight;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    let left = e.clientX + 20;
+    let top = e.clientY - 50;
+    
+    if (left + tooltipWidth > windowWidth - 20) left = e.clientX - tooltipWidth - 20;
+    if (top + tooltipHeight > windowHeight - 20) top = windowHeight - tooltipHeight - 20;
+    if (top < 20) top = 20;
+    
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
+});
+</script>
+{% endblock %}

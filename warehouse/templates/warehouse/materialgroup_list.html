@@ -1,0 +1,8 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3><i class="bi bi-collection me-2"></i>ГРУППЫ МАТЕРИАЛОВ</h3>
+  {% if user.is_staff %}<a href="{% url 'materialgroup_create' %}" class="btn btn-zzz-primary"><i class="bi bi-plus-lg me-1"></i>НОВАЯ ГРУППА</a>{% endif %}
+</div>
+<div class="card"><div class="card-body p-0"><table class="table mb-0"><thead><tr><th>Код</th><th>Наименование</th><th>Категория</th><th>Описание</th><th>Действия</th></tr></thead><tbody>{% for group in material_groups %}<tr><td>{{ group.code }}</td><td>{{ group.name }}</td><td>{{ group.get_category_display }}</td><td>{{ group.description|default:'—' }}</td><td>{% if user.is_staff %}<a href="{% url 'materialgroup_update' group.pk %}" class="btn btn-zzz-secondary btn-sm"><i class="bi bi-pencil"></i></a>{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="text-center py-4 text-muted">Группы материалов не созданы.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

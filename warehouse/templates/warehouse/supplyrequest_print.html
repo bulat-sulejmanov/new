@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заявка {{ req.number }}</title>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+        @media screen {
+            body { background: #f5f5f5; padding: 20px; }
+            .page { background: white; max-width: 900px; margin: 0 auto; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        }
+        body { font-family: "Segoe UI", Arial, sans-serif; font-size: 12pt; line-height: 1.4; color: #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 18pt; margin: 0 0 10px 0; text-transform: uppercase; }
+        .info-block { margin-bottom: 20px; }
+        .info-block h3 { font-size: 12pt; border-bottom: 1px solid #ccc; padding: 5px; margin-bottom: 10px; background: #f0f0f0; }
+        .info-row { margin-bottom: 8px; display: flex; }
+        .info-label { font-weight: bold; width: 220px; flex-shrink: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11pt; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .footer { margin-top: 40px; display: flex; justify-content: space-between; gap: 20px; }
+        .signature { width: 45%; }
+        .signature-line { border-top: 1px solid #000; margin-top: 30px; padding-top: 5px; font-size: 9pt; text-align: center; }
+        .status-badge { display: inline-block; padding: 3px 10px; border: 1px solid #000; font-weight: bold; }
+        .status-draft { background: #eee; }
+        .status-approved { background: #dbeeff; }
+        .status-work { background: #cfe2ff; }
+        .status-partial { background: #fff3cd; }
+        .status-completed { background: #d1e7dd; }
+        .status-cancelled { background: #f8d7da; }
+        .print-info { margin-top: 30px; font-size: 8pt; color: #666; text-align: right; border-top: 1px solid #ccc; padding-top: 10px; }
+        .print-btn { background: #007bff; color: white; border: none; border-radius: 5px; padding: 12px 40px; font-size: 14pt; cursor: pointer; }
+        .print-btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div style="text-align: center; margin-bottom: 20px;" class="no-print">
+            <button onclick="window.print()" class="print-btn">🖨️ Печать документа</button>
+            <button onclick="window.close()" class="print-btn" style="background: #6c757d; margin-left: 10px;">✕ Закрыть</button>
+        </div>
+
+        <div class="header">
+            <h1>Заявка на снабжение № {{ req.number }}</h1>
+            <p>
+                <strong>Дата создания:</strong> {{ req.created_at|date:"d.m.Y H:i" }} |
+                <strong>Требуемая дата:</strong> {{ req.required_date|date:"d.m.Y" }}
+            </p>
+            <p>
+                <strong>Статус:</strong>
+                <span class="status-badge {% if req.status == 'DRAFT' %}status-draft{% elif req.status == 'APPROVED' %}status-approved{% elif req.status == 'IN_WORK' %}status-work{% elif req.status == 'PARTIAL' %}status-partial{% elif req.status == 'COMPLETED' %}status-completed{% else %}status-cancelled{% endif %}">
+                    {{ req.get_status_display }}
+                </span>
+                &nbsp;&nbsp;
+                <strong>Приоритет:</strong> {{ req.get_priority_display }}
+            </p>
+        </div>
+
+        <div class="info-block">
+            <h3>Информация о доставке</h3>
+            <div class="info-row">
+                <span class="info-label">Объект:</span>
+                <span>{% if req.object %}{{ req.object.code }} — {{ req.object.name }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Адрес:</span>
+                <span>{{ req.delivery_address|default:"Не указан" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Контактное лицо:</span>
+                <span>{{ req.contact_person|default:"—" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Телефон:</span>
+                <span>{{ req.contact_phone|default:"—" }}</span>
+            </div>
+            {% if req.delivery_notes %}
+            <div class="info-row">
+                <span class="info-label">Примечание:</span>
+                <span>{{ req.delivery_notes }}</span>
+            </div>
+            {% endif %}
+            {% if req.notes %}
+            <div class="info-row">
+                <span class="info-label">Основание:</span>
+                <span>{{ req.notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info-block">
+            <h3>Заказанные позиции ({{ total_items }})</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;" class="text-center">№</th>
+                        <th style="width: 18%;">Артикул</th>
+                        <th>Наименование</th>
+                        <th style="width: 12%;" class="text-center">Кол-во</th>
+                        <th style="width: 10%;" class="text-center">Ед.</th>
+                        <th style="width: 15%;" class="text-center">Отпущено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td>{{ item.product.sku }}</td>
+                        <td>{{ item.product.name }}</td>
+                        <td class="text-right">{{ item.quantity_requested }}</td>
+                        <td class="text-center">{{ item.product.get_unit_display }}</td>
+                        <td class="text-center">
+                            {% if item.quantity_issued >= item.quantity_requested %}
+                                ✓ {{ item.quantity_issued }}
+                            {% elif item.quantity_issued > 0 %}
+                                {{ item.quantity_issued }} / {{ item.quantity_requested }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Позиции отсутствуют</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p><strong>Итого позиций:</strong> {{ total_items }} | <strong>Суммарное количество:</strong> {{ total_quantity }}</p>
+        </div>
+
+        <div class="footer">
+            <div class="signature">
+                <div>Заявитель: {{ req.created_by.username }}</div>
+                <div class="signature-line">Подпись / ФИО</div>
+            </div>
+            <div class="signature">
+                <div>Распечатал: {{ printed_by.username }}</div>
+                <div class="signature-line">Подпись / ФИО</div>
+            </div>
+        </div>
+
+        <div class="print-info">
+            Документ сформирован {{ print_date|date:"d.m.Y H:i" }}
+        </div>
+    </div>
+</body>
+</html>

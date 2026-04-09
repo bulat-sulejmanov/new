@@ -1,0 +1,135 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-truck me-2"></i>ПОСТАВЩИКИ</h3>
+  {% if user.is_staff %}
+    <a href="{% url 'supplier_create' %}" class="btn btn-zzz-primary">
+      <i class="bi bi-plus-lg me-1"></i>НОВАЯ ЗАПИСЬ
+    </a>
+  {% endif %}
+</div>
+
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center py-3">
+    <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i>ФИЛЬТРЫ И ПОИСК</span>
+    <a href="{% url 'supplier_list' %}" class="btn btn-sm btn-zzz-secondary">
+      <i class="bi bi-x-lg me-1"></i>Сбросить
+    </a>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-xl-8 col-lg-8 col-md-7">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">
+          <i class="bi bi-search me-1"></i>Поиск (название/ИНН/КПП/ОГРН/контакт)
+        </label>
+        {{ filter_form.q }}
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-8">
+        <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Аккредитация</label>
+        {{ filter_form.is_approved }}
+      </div>
+      <div class="col-xl-1 col-lg-1 col-md-2 col-sm-4">
+        <div class="d-grid">
+          <button type="submit" class="btn btn-zzz-primary btn-sm">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle" style="min-width: 900px;">
+        <thead class="sticky-top">
+          <tr>
+            <th class="zzz-dim ps-4">НАЗВАНИЕ</th>
+            <th class="zzz-dim">ИНН</th>
+            <th class="zzz-dim">КПП</th>
+            <th class="zzz-dim">ОГРН</th>
+            <th class="zzz-dim">СТАТУС</th>
+            {% if user.is_staff %}<th class="text-end zzz-dim pe-4">ДЕЙСТВИЯ</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for obj in suppliers %}
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex flex-column">
+                <span class="fw-bold">{{ obj.name }}</span>
+                {% if obj.contact_person or obj.phone or obj.email %}
+                  <small class="text-muted">
+                    {% if obj.contact_person %}{{ obj.contact_person }}{% endif %}
+                    {% if obj.phone %}{% if obj.contact_person %} · {% endif %}{{ obj.phone }}{% endif %}
+                    {% if obj.email %}<br>{{ obj.email }}{% endif %}
+                  </small>
+                {% endif %}
+              </div>
+            </td>
+            <td class="text-muted">{{ obj.inn|default:"—" }}</td>
+            <td class="text-muted">{{ obj.kpp|default:"—" }}</td>
+            <td class="text-muted">{{ obj.ogrn|default:"—" }}</td>
+            <td>
+              {% if obj.is_approved %}
+                <span class="badge bg-success">АККРЕДИТОВАН</span>
+              {% else %}
+                <span class="badge bg-secondary">НЕ АККРЕДИТОВАН</span>
+              {% endif %}
+            </td>
+            {% if user.is_staff %}
+            <td class="text-end pe-4">
+              <a class="btn btn-zzz-secondary btn-sm me-1" href="{% url 'supplier_update' obj.pk %}">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a class="btn btn-zzz-danger btn-sm" href="{% url 'supplier_delete' obj.pk %}">
+                <i class="bi bi-trash"></i>
+              </a>
+            </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user.is_staff %}6{% else %}5{% endif %}" class="text-center py-5 text-white-50">
+              <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+              ПОСТАВЩИКИ НЕ НАЙДЕНЫ
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if is_paginated %}
+  <div class="card-footer border-top border-secondary border-opacity-25 py-2">
+    <nav>
+      <ul class="pagination pagination-sm justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1{{ query_params }}"><i class="bi bi-chevron-double-left"></i></a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}"><i class="bi bi-chevron-left"></i></a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        <li class="page-item active">
+          <span class="page-link" style="background: var(--zzz-accent); color: #000; border-color: var(--zzz-accent);">
+            {{ page_obj.number }} / {{ paginator.num_pages }}
+          </span>
+        </li>
+
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}"><i class="bi bi-chevron-right"></i></a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}{{ query_params }}"><i class="bi bi-chevron-double-right"></i></a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

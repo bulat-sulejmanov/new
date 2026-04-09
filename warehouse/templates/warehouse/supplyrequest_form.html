@@ -1,0 +1,87 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-file-earmark-plus me-2"></i>НОВАЯ ЗАЯВКА НА СНАБЖЕНИЕ</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          <!-- Номер заявки -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Номер заявки <span class="text-danger">*</span></label>
+            {{ form.number }}
+            {% if form.number.errors %}
+              <div class="text-danger small">{{ form.number.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- АДРЕС ДОСТАВКИ - ГЛАВНОЕ ПОЛЕ -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Адрес доставки <span class="text-danger">*</span></label>
+            {{ form.delivery_address }}
+            <div class="form-text text-muted">
+              Укажите точный адрес: скважину, куст, НГДУ, ориентиры
+            </div>
+            {% if form.delivery_address.errors %}
+              <div class="text-danger small">{{ form.delivery_address.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Контактное лицо -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Контактное лицо</label>
+            {{ form.contact_person }}
+            <div class="form-text">ФИО получателя на объекте</div>
+          </div>
+
+          <!-- Телефон -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Телефон контакта</label>
+            {{ form.contact_phone }}
+            <div class="form-text">Мобильный для связи</div>
+          </div>
+
+          <!-- Примечание по доставке -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Примечание по доставке</label>
+            {{ form.delivery_notes }}
+            <div class="form-text">Время доставки, проезд, координаты</div>
+          </div>
+
+          <!-- Объект из справочника (необязательно) -->
+          <div class="mb-3">
+            <label class="form-label">Объект из справочника (если есть)</label>
+            {{ form.object }}
+            <div class="form-text text-muted">Можно выбрать из списка или оставить пустым</div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Требуемая дата <span class="text-danger">*</span></label>
+              {{ form.required_date }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Приоритет <span class="text-danger">*</span></label>
+              {{ form.priority }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Основание / Примечание</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'supplyrequest_list' %}" class="btn btn-zzz-secondary">ОТМЕНА</a>
+            <button type="submit" class="btn btn-zzz-primary btn-lg">СОЗДАТЬ ЗАЯВКУ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

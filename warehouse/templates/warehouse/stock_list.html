@@ -1,0 +1,171 @@
+{% extends 'warehouse/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-database me-2"></i>УПРАВЛЕНИЕ ОСТАТКАМИ</h3>
+  {% if user.is_staff %}
+  <div class="btn-group">
+    <a href="?export=csv" class="btn btn-zzz-secondary btn-sm">ЭКСПОРТ CSV</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+  <div class="card-header zzz-dim">ФИЛЬТРЫ И ПОИСК</div>
+  <div class="card-body">
+    <form method="get" class="row g-3">
+      <div class="col-md-3">
+        <input type="text" name="search" class="form-control" placeholder="Артикул/название..." value="{{ current_filters.search }}">
+      </div>
+      <div class="col-md-3">
+        <select name="status_filter" class="form-control">
+          <option value="">Все статусы</option>
+          <option value="critical" {% if current_filters.status == 'critical' %}selected{% endif %}>Критично (всего мало)</option>
+          <option value="low_location" {% if current_filters.status == 'low_location' %}selected{% endif %}>Мало в ячейке (но есть в других)</option>
+          <option value="ok" {% if current_filters.status == 'ok' %}selected{% endif %}>В наличии</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-zzz-primary w-100">ПРИМЕНИТЬ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table mb-0 align-middle">
+      <thead>
+        <tr>
+          <th class="zzz-dim">АРТИКУЛ / ТОВАР</th>
+          <th class="zzz-dim">ЛОКАЦИЯ</th>
+          <th class="zzz-dim text-center">В ЭТОЙ ЯЧЕЙКЕ</th>
+          <th class="zzz-dim text-center">ВСЕГО НА СКЛАДЕ</th>
+          <th class="zzz-dim text-center">МИН. ЗАПАС</th>
+          <th class="zzz-dim text-center">СТАТУС</th>
+          {% if user.is_staff %}<th class="zzz-dim">ДЕЙСТВИЯ</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in stock_items %}
+        <tr {% if item.total_stock < item.product.min_stock %}style="background: rgba(255, 68, 68, 0.1);"{% elif item.quantity < item.product.min_stock %}style="background: rgba(255, 193, 7, 0.1);"{% endif %}>
+          
+          <!-- Товар -->
+          <td>
+            <span class="zzz-text-glow fw-bold">{{ item.product.sku }}</span>
+            <br><small class="text-muted">{{ item.product.name }}</small>
+          </td>
+          
+          <!-- Локация -->
+          <td>
+            <span class="zzz-mono">{{ item.location.code }}</span>
+            <br><small class="text-muted">{{ item.location.get_area_display }}</small>
+          </td>
+          
+          <!-- Количество в этой ячейке -->
+          <td class="text-center">
+            <span class="zzz-mono fw-bold" style="font-size: 1.1rem;
+              {% if item.quantity < item.product.min_stock and item.total_stock >= item.product.min_stock %}
+                color: #ff9900;
+              {% elif item.total_stock < item.product.min_stock %}
+                color: #ff4444;
+              {% else %}
+                color: var(--zzz-accent);
+              {% endif %}">
+              {{ item.quantity }}
+            </span>
+          </td>
+          
+          <!-- Всего на складе (сумма) -->
+          <td class="text-center">
+            {% if item.total_stock != item.quantity %}
+              <span class="zzz-mono fw-bold" style="font-size: 1.1rem;
+                {% if item.total_stock < item.product.min_stock %}color: #ff4444;
+                {% else %}color: #28a745;{% endif %}">
+                {{ item.total_stock }}
+              </span>
+              <br><small class="text-muted">(всего по всем ячейкам)</small>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          
+          <!-- Минимальный запас -->
+          <td class="text-center zzz-mono">{{ item.product.min_stock }}</td>
+          
+          <!-- Статус -->
+          <td class="text-center">
+            {% if item.total_stock < item.product.min_stock and item.product.min_stock > 0 %}
+              <!-- Общий критический дефицит -->
+              <span class="badge bg-danger" style="box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>КРИТИЧЕСКИ
+              </span>
+              <br><small class="text-danger">Нужно закупить!</small>
+              
+            {% elif item.quantity < item.product.min_stock and item.total_stock >= item.product.min_stock %}
+              <!-- Мало в конкретной ячейке, но есть в других -->
+              <span class="badge bg-warning">
+                <i class="bi bi-box-seam me-1"></i>Мало в ячейке
+              </span>
+              <br><small class="text-muted">Переместить?</small>
+              
+            {% elif item.quantity == 0 %}
+              <span class="badge bg-secondary">Пусто</span>
+              
+            {% else %}
+              <span class="badge bg-success" style="box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);">
+                <i class="bi bi-check-circle me-1"></i>В НАЛИЧИИ
+              </span>
+            {% endif %}
+          </td>
+          
+          {% if user.is_staff %}
+          <td>
+            <div class="btn-group btn-group-sm">
+              <a href="{% url 'stockmove_create' %}?product={{ item.product.id }}&from_location={{ item.location.id }}" 
+                 class="btn btn-zzz-secondary" title="Переместить">
+                <i class="bi bi-arrow-left-right"></i>
+              </a>
+              {% if item.total_stock < item.product.min_stock %}
+              <a href="{% url 'po_create' %}?product={{ item.product.id }}" class="btn btn-zzz-danger" title="Создать заказ поставщику">
+                <i class="bi bi-cart-plus"></i>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if user.is_staff %}7{% else %}6{% endif %}" class="text-center py-4 zzz-dim">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            НЕТ ДАННЫХ
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Подсказка -->
+<div class="alert alert-info mt-3">
+  <h6><i class="bi bi-info-circle me-2"></i>Легенда статусов:</h6>
+  <div class="row small">
+    <div class="col-md-4">
+      <span class="badge bg-danger me-2">КРИТИЧЕСКИ</span> 
+      Общий остаток по всем ячейкам меньше минимального запаса. Требуется срочная закупка!
+    </div>
+    <div class="col-md-4">
+      <span class="badge bg-warning me-2">Мало в ячейке</span> 
+      В этой конкретной ячейке мало, но на других полках есть. Можно переместить.
+    </div>
+    <div class="col-md-4">
+      <span class="badge bg-success me-2">В НАЛИЧИИ</span> 
+      Всё в порядке. И здесь достаточно, и суммарно нормально.
+    </div>
+  </div>
+</div>
+{% endblock %}

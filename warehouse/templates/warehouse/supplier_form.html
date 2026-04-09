@@ -1,0 +1,102 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-truck me-2"></i>{% if object %}РЕДАКТИРОВАНИЕ{% else %}НОВЫЙ{% endif %} ПОСТАВЩИК</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          <!-- Название -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Название <span class="text-danger">*</span></label>
+            {{ form.name }}
+            <div class="form-text">Полное наименование организации</div>
+            {% if form.name.errors %}
+              <div class="text-danger small">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Реквизиты -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">ИНН</label>
+              {{ form.inn }}
+              <div class="form-text">10 или 12 цифр</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">КПП</label>
+              {{ form.kpp }}
+              <div class="form-text">9 цифр</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">ОГРН</label>
+              {{ form.ogrn }}
+              <div class="form-text">13 или 15 цифр</div>
+            </div>
+          </div>
+
+          <!-- Адрес -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Адрес</label>
+            {{ form.address }}
+            <div class="form-text">Юридический адрес</div>
+          </div>
+
+          <!-- Контакты -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Email</label>
+              {{ form.email }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Телефон</label>
+              {{ form.phone }}
+              <div class="form-text">Контактный номер организации</div>
+            </div>
+          </div>
+
+          <!-- Контактное лицо -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Контактное лицо</label>
+            {{ form.contact_person }}
+            <div class="form-text">ФИО представителя поставщика</div>
+          </div>
+
+          <!-- Заметки -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Заметки</label>
+            {{ form.notes }}
+            <div class="form-text">Дополнительная информация об условиях поставки</div>
+          </div>
+
+          <!-- Аккредитация -->
+          <div class="mb-4">
+            <div class="form-check form-switch zzz-switch-panel">
+              {{ form.is_approved }}
+              <div>
+                <label class="form-check-label fw-bold" for="{{ form.is_approved.id_for_label }}">
+                  Аккредитован
+                </label>
+                <div class="form-text">Поставщик прошел аккредитацию Татнефти</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'supplier_list' %}" class="btn btn-zzz-secondary">
+              <i class="bi bi-x-lg me-2"></i>ОТМЕНА
+            </a>
+            <button type="submit" class="btn btn-zzz-primary btn-lg">
+              <i class="bi bi-save me-2"></i>СОХРАНИТЬ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

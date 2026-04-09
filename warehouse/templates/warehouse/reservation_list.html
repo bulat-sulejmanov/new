@@ -1,0 +1,75 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-lock-fill me-2"></i>РЕЗЕРВЫ ПОД ОБЪЕКТЫ</h3>
+  <a href="{% url 'reservation_create' %}" class="btn btn-zzz-primary">
+    <i class="bi bi-plus-lg me-1"></i>НОВЫЙ РЕЗЕРВ
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th class="zzz-dim ps-4">ТОВАР</th>
+            <th class="zzz-dim">ОБЪЕКТ</th>
+            <th class="zzz-dim">ПАРТИЯ</th>
+            <th class="zzz-dim text-center">КОЛ-ВО</th>
+            <th class="zzz-dim">ДАТА ОТГРУЗКИ</th>
+            <th class="zzz-dim">СТАТУС</th>
+            <th class="zzz-dim text-end pe-4">КЕМ ЗАРЕЗЕРВИРОВАНО</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for res in reservations %}
+          <tr>
+            <td class="ps-4">
+              <span class="zzz-text-glow fw-bold">{{ res.product.sku }}</span>
+              <br><small class="text-muted">{{ res.product.name }}</small>
+            </td>
+            <td>
+              <strong>{{ res.object.code }}</strong>
+              <br><small class="text-muted">{{ res.object.get_object_type_display }}</small>
+            </td>
+            <td class="zzz-mono">
+              {% if res.batch %}
+                {{ res.batch.lot_number }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <span class="fw-bold text-warning zzz-mono">{{ res.quantity }}</span>
+              <small>{{ res.product.get_unit_display }}</small>
+            </td>
+            <td>{{ res.planned_date|date:"d.m.Y" }}</td>
+            <td>
+              {% if res.status == 'ACTIVE' %}
+                <span class="badge bg-warning text-dark">Активен</span>
+              {% elif res.status == 'SHIPPED' %}
+                <span class="badge bg-success">Отгружен</span>
+              {% else %}
+                <span class="badge bg-secondary">Отменен</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-4">
+              <small>{{ res.reserved_by.username }}</small>
+              <br><small class="text-muted">{{ res.reserved_at|date:"d.m.Y H:i" }}</small>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-4 zzz-dim">
+              <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+              НЕТ АКТИВНЫХ РЕЗЕРВОВ
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

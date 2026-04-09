@@ -1,0 +1,50 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body p-4">
+        <h3 class="card-title text-center mb-4 zzz-gradient-text">Регистрация</h3>
+        <p class="text-muted text-center mb-4">Создайте новый аккаунт</p>
+        
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> Исправьте ошибки ниже
+            </div>
+          {% endif %}
+          
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text and field.name != 'username' %}
+                <small class="form-text d-block mt-1">{{ field.help_text }}</small>
+              {% endif %}
+              {% for error in field.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+          
+          <div class="d-grid gap-2 mb-3">
+            <button type="submit" class="btn btn-zzz-primary btn-lg">
+              <i class="bi bi-person-plus me-2"></i> Зарегистрироваться
+            </button>
+          </div>
+        </form>
+        
+        <hr>
+        
+        <div class="text-center">
+          <p class="mb-0">Уже есть аккаунт? 
+            <a href="{% url 'login' %}" class="zzz-gradient-text fw-bold">Войти</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

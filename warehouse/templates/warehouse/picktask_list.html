@@ -1,0 +1,356 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-10">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="zzz-gradient-text"><i class="bi bi-check2-square me-2"></i>ЗАДАЧИ НА ОТБОР (ПО ЗАЯВКАМ)</h3>
+      {% if user.is_staff %}
+        <a href="{% url 'picktask_create' %}" class="btn btn-zzz-primary">НОВАЯ ЗАДАЧА</a>
+      {% endif %}
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <span class="fw-bold"><i class="bi bi-funnel-fill me-2"></i>ФИЛЬТРЫ И ПОИСК</span>
+        <a href="{% url 'picktask_list' %}" class="btn btn-sm btn-zzz-secondary">
+          <i class="bi bi-x-lg me-1"></i>Сбросить
+        </a>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-xl-5 col-lg-5 col-md-6">
+            <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">
+              <i class="bi bi-search me-1"></i>Поиск (заявка/объект/адрес/товар/заявитель)
+            </label>
+            {{ filter_form.q }}
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-6">
+            <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Приоритет</label>
+            {{ filter_form.priority }}
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-6">
+            <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Статус заявки</label>
+            {{ filter_form.request_status }}
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-8">
+            <label class="form-label text-uppercase small fw-bold mb-1" style="font-size: 0.75rem;">Показать</label>
+            {{ filter_form.group_type }}
+          </div>
+          <div class="col-xl-1 col-lg-1 col-md-2 col-sm-4">
+            <div class="d-grid">
+              <button type="submit" class="btn btn-zzz-primary btn-sm">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% for group in task_groups %}
+    <div class="card mb-4 {% if group.priority == 'CRITICAL' %}border-danger{% elif group.priority == 'HIGH' %}border-warning{% else %}border-info{% endif %}">
+      <div class="card-header d-flex justify-content-between align-items-center py-3"
+           style="{% if group.priority == 'CRITICAL' %}background: rgba(220, 53, 69, 0.1);{% elif group.priority == 'HIGH' %}background: rgba(255, 193, 7, 0.1);{% else %}background: rgba(13, 202, 240, 0.1);{% endif %}">
+
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-{% if group.priority == 'CRITICAL' %}danger{% elif group.priority == 'HIGH' %}warning text-dark{% else %}info{% endif %} fs-6">
+            {{ group.supply_request.get_priority_display }}
+          </span>
+
+          <div>
+            <h5 class="mb-0">
+              <i class="bi bi-truck me-2"></i>
+              ЗАЯВКА №{{ group.supply_request.number }}
+            </h5>
+            <small class="text-muted">
+              {% if group.supply_request.object %}
+                {{ group.supply_request.object.code }} — {{ group.supply_request.object.name }}
+              {% else %}
+                {{ group.supply_request.delivery_address|truncatechars:50 }}
+              {% endif %}
+            </small>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <span class="badge bg-secondary fs-6">
+            {% if group.total_tasks > 0 %}
+              {{ group.total_tasks }} задач
+            {% else %}
+              Нет задач
+            {% endif %}
+          </span>
+          <br>
+          <small class="text-muted">{{ group.supply_request.required_date|date:"d.m.Y" }}</small>
+          <br>
+          {% if group.supply_request.status == 'DRAFT' %}
+            <span class="badge bg-secondary mt-1">ЧЕРНОВИК</span>
+          {% elif group.supply_request.status == 'APPROVED' %}
+            <span class="badge bg-info text-dark mt-1">УТВЕРЖДЕНО</span>
+          {% elif group.supply_request.status == 'IN_WORK' %}
+            <span class="badge bg-primary mt-1">В РАБОТЕ</span>
+          {% elif group.supply_request.status == 'PARTIAL' %}
+            <span class="badge bg-warning text-dark mt-1">ЧАСТИЧНО</span>
+          {% elif group.supply_request.status == 'COMPLETED' %}
+            <span class="badge bg-success mt-1">ВЫПОЛНЕНО</span>
+          {% else %}
+            <span class="badge bg-dark mt-1">ОТМЕНЕНО</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-body border-bottom">
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <div class="bg-primary bg-opacity-10 rounded-circle p-2">
+                <i class="bi bi-person-circle fs-4 text-primary"></i>
+              </div>
+              <div>
+                <small class="text-muted d-block">Заявитель</small>
+                <strong class="text-primary">
+                  {% if group.created_by %}
+                    {{ group.created_by.get_full_name|default:group.created_by.username }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </strong>
+                {% if group.created_by and group.created_by.get_full_name %}
+                  <br><small class="text-muted">@{{ group.created_by.username }}</small>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-2">
+            <strong><i class="bi bi-geo-alt me-1"></i>Адрес:</strong><br>
+            {{ group.supply_request.delivery_address|default:"Не указан"|truncatechars:30 }}
+          </div>
+          <div class="col-md-2 mb-2">
+            <strong><i class="bi bi-person me-1"></i>Контакт:</strong><br>
+            {{ group.supply_request.contact_person|default:"—" }}
+          </div>
+          <div class="col-md-2 mb-2">
+            <strong><i class="bi bi-telephone me-1"></i>Телефон:</strong><br>
+            {{ group.supply_request.contact_phone|default:"—" }}
+          </div>
+          <div class="col-md-2 text-end">
+            <a href="{% url 'supplyrequest_detail' group.supply_request.pk %}"
+               class="btn btn-sm btn-zzz-secondary" target="_blank">
+              <i class="bi bi-eye me-1"></i>Заявка
+            </a>
+          </div>
+        </div>
+        {% if group.supply_request.delivery_notes %}
+          <div class="mt-2 text-muted">
+            <i class="bi bi-info-circle me-1"></i>{{ group.supply_request.delivery_notes }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="card-body p-0">
+        {% if group.tasks %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4" style="width: 5%;">#</th>
+                  <th style="width: 30%;">Товар</th>
+                  <th style="width: 15%;">Партия</th>
+                  <th class="text-center" style="width: 10%;">Кол-во</th>
+                  <th style="width: 15%;">Откуда</th>
+                  <th style="width: 15%;">Куда</th>
+                  <th class="pe-4 text-end" style="width: 10%;">Действие</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for task in group.tasks %}
+                <tr>
+                  <td class="ps-4">{{ forloop.counter }}</td>
+                  <td>
+                    <strong class="zzz-text-glow">{{ task.product.sku }}</strong>
+                    <br><small>{{ task.product.name }}</small>
+                  </td>
+                  <td>
+                    {% if task.batch %}
+                      <span class="badge bg-secondary">{{ task.batch.lot_number }}</span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <span class="fw-bold fs-5">{{ task.quantity }}</span>
+                    <small class="text-muted">{{ task.product.get_unit_display }}</small>
+                  </td>
+                  <td>
+                    {% if task.from_location %}
+                      <span class="badge bg-secondary">{{ task.from_location.code }}</span>
+                      <br><small class="text-muted">{{ task.from_location.get_area_display }}</small>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if task.to_location %}
+                      <span class="badge bg-info">{{ task.to_location.code }}</span>
+                      <br><small class="text-muted">{{ task.to_location.get_area_display }}</small>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="pe-4 text-end">
+                    <form method="post" action="{% url 'picktask_complete' task.pk %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-success btn-sm"
+                              onclick="return confirm('Подтвердить отбор {{ task.quantity }} {{ task.product.get_unit_display }}?')">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    </form>
+                    <a href="{% url 'picktask_detail' task.pk %}" class="btn btn-zzz-secondary btn-sm">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if group.supply_request.status == 'APPROVED' or group.supply_request.status == 'IN_WORK' %}
+            <div class="card-footer bg-light">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">
+                  <i class="bi bi-person me-1"></i>
+                  Заявитель:
+                  <strong>
+                    {% if group.created_by %}
+                      {{ group.created_by.get_full_name|default:group.created_by.username }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </strong>
+                  | Проверьте все позиции перед выполнением
+                </span>
+                <a href="{% url 'picktask_create' %}?supply_request={{ group.supply_request.pk }}"
+                   class="btn btn-success btn-sm">
+                  <i class="bi bi-plus-lg me-1"></i>Добавить задачу
+                </a>
+              </div>
+            </div>
+          {% endif %}
+
+        {% else %}
+          <div class="card-body text-center py-4">
+            <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+            <p class="text-muted">По этой заявке ещё не созданы задачи на отбор</p>
+            <div class="d-flex justify-content-center gap-2">
+              <span class="text-muted">
+                <i class="bi bi-person me-1"></i>
+                Заявитель:
+                {% if group.created_by %}
+                  {{ group.created_by.get_full_name|default:group.created_by.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </span>
+            </div>
+            <a href="{% url 'picktask_create' %}?supply_request={{ group.supply_request.pk }}"
+               class="btn btn-zzz-primary mt-3">
+              <i class="bi bi-magic me-2"></i>АВТОСОЗДАНИЕ ЗАДАЧ
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="card">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        <h5>Нет активных заявок на отбор</h5>
+        <p>По выбранным фильтрам ничего не найдено</p>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if is_paginated %}
+    <div class="card mb-4">
+      <div class="card-footer border-top border-secondary border-opacity-25 py-2">
+        <nav>
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page=1{{ query_params }}"><i class="bi bi-chevron-double-left"></i></a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}"><i class="bi bi-chevron-left"></i></a></li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+              <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+            {% endif %}
+
+            <li class="page-item active">
+              <span class="page-link" style="background: var(--zzz-accent); color: #000; border-color: var(--zzz-accent);">
+                {{ page_obj.number }} / {{ paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}"><i class="bi bi-chevron-right"></i></a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}{{ query_params }}"><i class="bi bi-chevron-double-right"></i></a></li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+              <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if completed_tasks %}
+    <div class="card mt-4 border-success">
+      <div class="card-header bg-success bg-opacity-10 py-3">
+        <h5 class="mb-0">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          НЕДАВНО ВЫПОЛНЕННЫЕ ({{ completed_tasks|length }})
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <tbody>
+              {% for task in completed_tasks %}
+              <tr class="text-muted">
+                <td class="ps-4">
+                  <small>{{ task.completed_at|date:"d.m.Y H:i" }}</small>
+                </td>
+                <td>
+                  <strong>{{ task.product.sku }}</strong> — {{ task.product.name }}
+                </td>
+                <td>
+                  {% if task.supply_request %}
+                    <small>
+                      заявка {{ task.supply_request.number }}
+                      {% if task.supply_request.created_by %}
+                        <i class="bi bi-person ms-1"></i>
+                        {{ task.supply_request.created_by.get_full_name|default:task.supply_request.created_by.username }}
+                      {% endif %}
+                    </small>
+                  {% endif %}
+                </td>
+                <td class="text-end pe-4">
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-lg me-1"></i>Выполнено
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    
+    <div class="card mb-4 {% if task.is_done %}border-success{% else %}border-warning{% endif %}">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-{% if task.is_done %}success{% else %}warning text-dark{% endif %} me-2">
+            {% if task.is_done %}ВЫПОЛНЕНО{% else %}В РАБОТЕ{% endif %}
+          </span>
+          <strong>Задача на отбор №{{ task.pk }}</strong>
+        </div>
+        <span class="fs-5 fw-bold">{{ task.quantity }} {{ task.product.get_unit_display }}</span>
+      </div>
+      
+      <div class="card-body">
+        <h5 class="mb-3">{{ task.product.sku }} — {{ task.product.name }}</h5>
+        
+        {% if task.batch %}
+        <p class="text-muted">Партия: {{ task.batch.lot_number }}</p>
+        {% endif %}
+        
+        <div class="row mb-3">
+          <div class="col-md-6 mb-2">
+            <small class="text-muted d-block">Откуда</small>
+            <span class="badge bg-secondary fs-6">{{ task.from_location.code }}</span>
+            <small>{{ task.from_location.get_area_display }}</small>
+          </div>
+          <div class="col-md-6 mb-2">
+            <small class="text-muted d-block">Куда</small>
+            <span class="badge bg-info fs-6">{{ task.to_location.code }}</span>
+            <small>{{ task.to_location.get_area_display }}</small>
+          </div>
+        </div>
+        
+        {% if task.supply_request %}
+        <div class="alert alert-light border mb-3">
+          <h6 class="mb-2"><i class="bi bi-truck me-2"></i>По заявке №{{ task.supply_request.number }}</h6>
+          <p class="mb-1"><strong>Адрес:</strong> {{ task.supply_request.delivery_address|default:"Не указан" }}</p>
+          <p class="mb-1"><strong>Контакт:</strong> {{ task.supply_request.contact_person|default:"—" }}, {{ task.supply_request.contact_phone|default:"—" }}</p>
+          {% if task.supply_request.delivery_notes %}
+            <p class="mb-0 text-muted"><i class="bi bi-info-circle me-1"></i>{{ task.supply_request.delivery_notes }}</p>
+          {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <small class="text-muted d-block">Создано</small>
+            {{ task.created_at|date:"d.m.Y H:i" }}
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Исполнитель</small>
+            {{ task.assigned_to.username|default:"Не назначен" }}
+          </div>
+        </div>
+        
+        {% if not task.is_done %}
+<div class="d-grid">
+  <form method="post" action="{% url 'picktask_complete' task.pk %}" id="complete-form">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success btn-lg" 
+            id="complete-btn"
+            onclick="return confirm('Подтвердить выполнение задачи?') && disableButton();">
+      <i class="bi bi-check-lg me-2"></i>ВЫПОЛНИТЬ ЗАДАЧУ
+    </button>
+  </form>
+</div>
+
+<script>
+function disableButton() {
+    const btn = document.getElementById('complete-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>ВЫПОЛНЕНИЕ...';
+    return true;
+}
+</script>
+{% endif %}
+      </div>
+    </div>
+    
+    <a href="{% url 'picktask_list' %}" class="btn btn-zzz-secondary">
+      <i class="bi bi-arrow-left me-1"></i>К списку задач
+    </a>
+    
+  </div>
+</div>
+{% endblock %}

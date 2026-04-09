@@ -1,0 +1,323 @@
+{% load static %}
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PostgreSQL недоступен</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/zzz-theme.css' %}">
+    <style>
+        body.db-unavailable-page {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+            overflow-x: hidden;
+        }
+
+        body.db-unavailable-page::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at top left, rgba(196, 92, 92, 0.18), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(90, 154, 168, 0.18), transparent 34%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .db-shell {
+            position: relative;
+            z-index: 1;
+            width: min(820px, 100%);
+        }
+
+        .db-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+            padding: 0.8rem 1.1rem;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 2px solid rgba(255,255,255,0.16);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            backdrop-filter: blur(10px);
+        }
+
+        .db-brand i {
+            font-size: 1.3rem;
+            color: var(--zzz-accent);
+            text-shadow: 0 0 15px rgba(255,255,255,0.25);
+        }
+
+        .db-brand-title {
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .db-hero-card {
+            position: relative;
+            overflow: hidden;
+            border-width: 3px;
+        }
+
+        .db-hero-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 36%, transparent 64%, rgba(255,255,255,0.03));
+        }
+
+        .db-status-chip,
+        .db-path-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            border-radius: 999px;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.86rem;
+            line-height: 1;
+            border: 2px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.05);
+            color: var(--zzz-text-secondary);
+        }
+
+        .db-status-chip {
+            border-color: rgba(196, 92, 92, 0.38);
+            background: rgba(196, 92, 92, 0.11);
+            color: #f0b9b9;
+            box-shadow: 0 0 18px rgba(196, 92, 92, 0.10);
+        }
+
+        .db-icon-panel {
+            width: 84px;
+            height: 84px;
+            border-radius: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(196, 92, 92, 0.12);
+            border: 3px solid rgba(196, 92, 92, 0.35);
+            box-shadow: 0 0 25px rgba(196, 92, 92, 0.12);
+            margin-bottom: 1.2rem;
+        }
+
+        .db-icon-panel i {
+            font-size: 2rem;
+            color: #f0b9b9;
+        }
+
+        .db-title {
+            font-size: clamp(1.9rem, 4vw, 2.75rem);
+            line-height: 1.08;
+            margin-bottom: 0.85rem;
+        }
+
+        .db-lead {
+            color: var(--zzz-text-secondary);
+            font-size: 1.02rem;
+            line-height: 1.7;
+            max-width: 60ch;
+        }
+
+        .db-info-box {
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            background: rgba(255,255,255,0.04);
+            border: 2px solid rgba(255,255,255,0.12);
+            color: var(--zzz-text-secondary);
+        }
+
+        .db-info-box strong {
+            color: var(--zzz-text);
+        }
+
+        .db-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+            margin-top: 1.3rem;
+        }
+
+        .db-actions .btn {
+            min-width: 180px;
+        }
+
+        .db-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-top: 1rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 14px;
+            border: 2px solid rgba(90, 154, 168, 0.22);
+            background: rgba(90, 154, 168, 0.09);
+            color: #9fd8e3;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.98rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .db-side-panel {
+            height: 100%;
+        }
+
+        .db-side-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .db-side-list li {
+            display: flex;
+            gap: 0.8rem;
+            align-items: flex-start;
+            color: var(--zzz-text-secondary);
+        }
+
+        .db-side-list i {
+            margin-top: 0.1rem;
+            color: #7ac0d0;
+            filter: drop-shadow(0 0 10px rgba(90,154,168,0.25));
+        }
+
+        [data-theme="light"] body.db-unavailable-page::before {
+            background:
+                radial-gradient(circle at top left, rgba(196, 92, 92, 0.11), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(90, 154, 168, 0.13), transparent 34%);
+        }
+
+        [data-theme="light"] .db-brand,
+        [data-theme="light"] .db-info-box,
+        [data-theme="light"] .db-path-chip,
+        [data-theme="light"] .db-countdown {
+            border-color: rgba(15,23,42,0.08);
+        }
+
+        @media (max-width: 767px) {
+            .db-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="db-unavailable-page">
+    <div class="db-shell">
+        <div class="db-brand">
+            <i class="bi bi-droplet-fill"></i>
+            <div>
+                <div class="db-brand-title">Татнефтеснаб</div>
+                <div class="small text-muted">Система управления запасами</div>
+            </div>
+        </div>
+
+        <div class="card db-hero-card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-lg-7">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="db-status-chip"><i class="bi bi-plug-fill"></i> PostgreSQL offline</span>
+                            <span class="db-path-chip"><i class="bi bi-link-45deg"></i> Текущий адрес: {{ retry_url }}</span>
+                        </div>
+
+                        <div class="db-icon-panel">
+                            <i class="bi bi-database-exclamation"></i>
+                        </div>
+
+                        <h1 class="db-title">Нет подключения к PostgreSQL</h1>
+                        <p class="db-lead">
+                            База данных временно недоступна. Обычно это происходит, когда служба PostgreSQL остановлена,
+                            была перезапущена или ещё не успела подняться после запуска системы.
+                        </p>
+
+                        <div class="db-info-box mt-4">
+                            <strong>Что сделать:</strong> запустите службу PostgreSQL и нажмите <strong>«Повторить»</strong>.
+                            Как только соединение восстановится, сайт автоматически попытается открыть текущую страницу.
+                        </div>
+
+                        <div class="db-actions">
+                            <a class="btn btn-zzz-primary" href="{{ retry_url }}">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Повторить
+                            </a>
+                            <a class="btn btn-zzz-secondary" href="/">
+                                <i class="bi bi-house-door me-2"></i>На главную
+                            </a>
+                        </div>
+
+                        <div class="db-countdown">
+                            <i class="bi bi-clock-history"></i>
+                            Автообновление через <span id="countdown">7</span> сек.
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="card h-100 db-side-panel">
+                            <div class="card-header">
+                                <i class="bi bi-info-circle me-2"></i>Статус подключения
+                            </div>
+                            <div class="card-body">
+                                <ul class="db-side-list">
+                                    <li>
+                                        <i class="bi bi-x-octagon-fill"></i>
+                                        <span>Приложение не может получить данные из базы, поэтому рабочие разделы временно недоступны.</span>
+                                    </li>
+                                    <li>
+                                        <i class="bi bi-shield-check"></i>
+                                        <span>После восстановления сервера база откроется без traceback, а сверху появится маленькое уведомление о возврате соединения.</span>
+                                    </li>
+                                    <li>
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <span>Можно просто дождаться автообновления — страница сама повторит запрос на тот же адрес.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const html = document.documentElement;
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            html.setAttribute('data-theme', savedTheme);
+
+            const storageKey = 'db_unavailable_pending_notice';
+            const retryHref = "{{ retry_url|default:'/'|escapejs }}";
+            localStorage.setItem(storageKey, JSON.stringify({
+                pending: true,
+                createdAt: Date.now(),
+                retryUrl: retryHref
+            }));
+
+            const countdownEl = document.getElementById('countdown');
+            let seconds = 7;
+
+            const timer = setInterval(function() {
+                seconds -= 1;
+                if (countdownEl) {
+                    countdownEl.textContent = String(seconds);
+                }
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    window.location.href = retryHref;
+                }
+            }, 1000);
+        })();
+    </script>
+</body>
+</html>

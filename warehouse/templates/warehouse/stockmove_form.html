@@ -1,0 +1,98 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    
+    <!-- Подсказка о предвыбранных значениях -->
+    {% if preselected_product %}
+    <div class="alert alert-info mb-3">
+      <i class="bi bi-info-circle me-2"></i>
+      <strong>Товар:</strong> {{ preselected_product.sku }} — {{ preselected_product.name }}
+      {% if preselected_location %}
+        <br><strong>Локация:</strong> {{ preselected_location.code }} ({{ preselected_location.get_area_display }})
+      {% endif %}
+      <br><small class="text-muted">Поля предзаполнены из остатков. Проверьте и дополните информацию.</small>
+    </div>
+    {% endif %}
+    
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>СКЛАДСКОЕ ДВИЖЕНИЕ</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          <div class="row g-3">
+            <!-- Товар -->
+            <div class="col-md-6">
+              <label class="form-label">Товар <span class="text-danger">*</span></label>
+              {{ form.product }}
+            </div>
+            
+            <!-- Тип движения -->
+            <div class="col-md-6">
+              <label class="form-label">Тип операции <span class="text-danger">*</span></label>
+              {{ form.move_type }}
+              <div class="form-text text-muted">
+                {% if preselected_location %}
+                  {% if not form.to_location.value %}Списание/отгрузка{% else %}Перемещение{% endif %}
+                {% endif %}
+              </div>
+            </div>
+            
+            <!-- Откуда -->
+            <div class="col-md-6">
+              <label class="form-label">Откуда (если списание/перемещение)</label>
+              {{ form.from_location }}
+            </div>
+            
+            <!-- Куда -->
+            <div class="col-md-6">
+              <label class="form-label">Куда (если приход/перемещение)</label>
+              {{ form.to_location }}
+            </div>
+            
+            <!-- Количество -->
+            <div class="col-md-6">
+              <label class="form-label">Количество <span class="text-danger">*</span></label>
+              {{ form.quantity }}
+            </div>
+            
+            <!-- Основание -->
+            <div class="col-md-6">
+              <label class="form-label">Основание / Комментарий</label>
+              {{ form.reference }}
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'stock_list' %}" class="btn btn-zzz-secondary">К ОСТАТКАМ</a>
+            <button type="submit" class="btn btn-zzz-primary">ПРИМЕНИТЬ ДВИЖЕНИЕ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Подсказка по типам движений -->
+    <div class="alert alert-secondary mt-3">
+      <h6><i class="bi bi-question-circle me-2"></i>Типы операций:</h6>
+      <div class="row small text-muted">
+        <div class="col-md-4">
+          <strong>Приход</strong> — только "Куда" (товар пришел на склад)<br>
+          <strong>Отгрузка</strong> — только "Откуда" (товар ушел со склада)
+        </div>
+        <div class="col-md-4">
+          <strong>Перемещение</strong> — "Откуда" и "Куда" (с полки на полку)<br>
+          <strong>Отбор</strong> — со склада в зону отгрузки
+        </div>
+        <div class="col-md-4">
+          <strong>Корректировка</strong> — исправление ошибок учета<br>
+          <strong>Размещение</strong> — с приемки на постоянное место
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

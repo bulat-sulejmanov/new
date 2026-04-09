@@ -1,0 +1,299 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<style>
+  .dashboard-scroll-box { max-height: 360px; }
+  .dashboard-chart-card { height: 100%; }
+  .dashboard-chart-wrap { position: relative; height: 320px; }
+  .dashboard-chart-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .dashboard-chart-note { color: var(--zzz-text-secondary); font-size: 0.9rem; }
+  @media (max-width: 991.98px) {
+    .dashboard-chart-wrap { height: 260px; }
+  }
+</style>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><h6 class="card-title">Товары</h6><p class="display-6">{{ total_products }}</p></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><h6 class="card-title">Поставщики</h6><p class="display-6">{{ suppliers }}</p></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><h6 class="card-title">Открытые закупки</h6><p class="display-6">{{ open_pos }}</p></div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body"><h6 class="card-title">Движения сегодня</h6><p class="display-6">{{ moves_today }}</p></div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-5">
+    <div class="card shadow-sm dashboard-chart-card">
+      <div class="card-header dashboard-chart-title">
+        <span><i class="bi bi-pie-chart me-2"></i>Закупки по статусам</span>
+        <small class="dashboard-chart-note">Всего заказов: {{ po_status_chart.total }}</small>
+      </div>
+      <div class="card-body">
+        <div class="dashboard-chart-wrap">
+          <canvas id="poStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm dashboard-chart-card">
+      <div class="card-header dashboard-chart-title">
+        <span><i class="bi bi-bar-chart-line me-2"></i>Движения за последние 14 дней</span>
+        <small class="dashboard-chart-note">По количеству товара</small>
+      </div>
+      <div class="card-body">
+        <div class="dashboard-chart-wrap">
+          <canvas id="moveActivityChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="card shadow-sm dashboard-chart-card">
+      <div class="card-header dashboard-chart-title">
+        <span><i class="bi bi-exclamation-diamond me-2"></i>Товары ниже минимального остатка</span>
+        <small class="dashboard-chart-note">Сравнение факта и минимального запаса</small>
+      </div>
+      <div class="card-body">
+        <div class="dashboard-chart-wrap">
+          <canvas id="lowStockChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if user.is_staff %}
+  {% if reorder_suggestions %}
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card border-danger shadow">
+        <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+          <h4 class="mb-0"><i class="bi bi-cart-plus me-2"></i>ТРЕБУЕТСЯ ЗАКАЗАТЬ</h4>
+          <span class="badge bg-white text-danger fs-6">{{ reorder_suggestions|length }} позиций</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4">Артикул / Товар</th>
+                  <th>Поставщик</th>
+                  <th class="text-center">Доступно</th>
+                  <th class="text-center">Уже заказано</th>
+                  <th class="text-center">Точка заказа</th>
+                  <th class="text-center">Рекомендуемое кол-во</th>
+                  <th class="text-center">Срок поставки</th>
+                  <th class="text-center">Срочность</th>
+                  <th class="pe-4 text-end">Действие</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in reorder_suggestions %}
+                <tr class="{% if item.urgency == 'HIGH' %}table-danger{% endif %}">
+                  <td class="ps-4"><strong class="text-danger">{{ item.product.sku }}</strong><br><small class="text-muted">{{ item.product.name|truncatechars:40 }}</small></td>
+                  <td>{% if item.supplier %}{{ item.supplier }}{% else %}<span class="text-warning">Нет поставщика</span>{% endif %}</td>
+                  <td class="text-center"><span class="fw-bold text-danger fs-5">{{ item.current_available }}</span> <small>{{ item.product.get_unit_display }}</small></td>
+                  <td class="text-center">{% if item.open_order_qty > 0 %}<span class="badge bg-info">{{ item.open_order_qty|floatformat:0 }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                  <td class="text-center text-muted">{{ item.product.reorder_point }}</td>
+                  <td class="text-center fw-bold text-success fs-5">{{ item.suggested_qty|floatformat:0 }}</td>
+                  <td class="text-center"><small class="d-block text-muted">заказ до:</small>{{ item.required_by_date|date:"d.m.Y" }}</td>
+                  <td class="text-center">{% if item.urgency == 'HIGH' %}<span class="badge bg-danger fs-6"><i class="bi bi-exclamation-triangle me-1"></i>КРИТИЧЕСКИ</span>{% else %}<span class="badge bg-warning text-dark">Норма</span>{% endif %}</td>
+                  <td class="pe-4 text-end">{% if item.supplier %}<a href="{% url 'po_create' %}?product={{ item.product.id }}" class="btn btn-danger btn-sm"><i class="bi bi-plus-lg me-1"></i>Создать заказ</a>{% else %}<span class="badge bg-secondary">Нет поставщика</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+          <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Расчёт: остаток − резервы ≤ точка заказа.</small>
+          <a href="{% url 'po_create' %}?mode=reorder_all" class="btn btn-danger"><i class="bi bi-cart-plus me-2"></i>СОЗДАТЬ ЗАКАЗ НА ВСЁ</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="row mt-4"><div class="col-12"><div class="alert alert-success border-0"><i class="bi bi-check-circle-fill me-2"></i><strong>Все запасы в норме.</strong> Нет товаров, требующих срочной закупки.</div></div></div>
+  {% endif %}
+{% endif %}
+
+<div class="row g-3 mt-1">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header">Последние движения</div>
+      <div class="card-body p-0">
+        <div class="table-responsive dashboard-scroll-box">
+          <table class="table table-sm mb-0">
+            <thead class="sticky-top bg-inherit"><tr><th>Дата</th><th>Тип</th><th>Товар</th><th>К-во</th><th>Из</th><th>В</th></tr></thead>
+            <tbody>
+              {% for m in last_moves %}
+                <tr><td>{{ m.created_at|date:"d.m.Y H:i" }}</td><td>{{ m.get_move_type_display }}</td><td>{{ m.product }}</td><td>{{ m.quantity }}</td><td>{{ m.from_location|default:"—" }}</td><td>{{ m.to_location|default:"—" }}</td></tr>
+              {% empty %}
+                <tr><td colspan="6" class="text-muted">Пока нет данных</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Минимальные остатки</div>
+      <div class="card-body p-0">
+        <div class="table-responsive dashboard-scroll-box">
+          <table class="table table-sm mb-0">
+            <thead class="sticky-top bg-inherit"><tr><th>Товар</th><th>Локация</th><th>Остаток</th></tr></thead>
+            <tbody>
+              {% for s in low_stock %}
+                <tr><td>{{ s.product }}</td><td>{{ s.location }}</td><td>{{ s.quantity }}</td></tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">Нет дефицита</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ po_status_chart|json_script:"po-status-data" }}
+{{ move_activity_chart|json_script:"move-activity-data" }}
+{{ low_stock_chart|json_script:"low-stock-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  (function() {
+    const poStatusData = JSON.parse(document.getElementById('po-status-data').textContent);
+    const moveActivityData = JSON.parse(document.getElementById('move-activity-data').textContent);
+    const lowStockData = JSON.parse(document.getElementById('low-stock-data').textContent);
+    const chartInstances = [];
+
+    function getCssVar(name, fallback) {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return value || fallback;
+    }
+
+    function hexToRgba(hex, alpha) {
+      if (!hex || !hex.startsWith('#')) return hex;
+      let value = hex.replace('#', '');
+      if (value.length === 3) value = value.split('').map(ch => ch + ch).join('');
+      const num = parseInt(value, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function destroyCharts() {
+      while (chartInstances.length) {
+        chartInstances.pop().destroy();
+      }
+    }
+
+    function buildCharts() {
+      destroyCharts();
+
+      const textColor = getCssVar('--zzz-text', '#ffffff');
+      const mutedColor = getCssVar('--zzz-text-secondary', '#8b8b9a');
+      const borderColor = getCssVar('--zzz-border', '#2a2a35');
+      const accentColor = getCssVar('--zzz-accent', '#ffffff');
+      const dangerColor = getCssVar('--zzz-danger', '#c45c5c');
+      const warningColor = getCssVar('--zzz-warning', '#cc8a33');
+      const infoColor = getCssVar('--zzz-info', '#5a9aa8');
+
+      Chart.defaults.color = mutedColor;
+      Chart.defaults.borderColor = hexToRgba(borderColor, 0.65);
+      Chart.defaults.font.family = 'Inter, sans-serif';
+
+      chartInstances.push(new Chart(document.getElementById('poStatusChart'), {
+        type: 'doughnut',
+        data: {
+          labels: poStatusData.labels,
+          datasets: [{
+            data: poStatusData.values,
+            backgroundColor: [accentColor, infoColor, dangerColor, warningColor],
+            borderColor: hexToRgba(borderColor, 0.95),
+            borderWidth: 2,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, padding: 18, boxWidth: 14 } },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+          }
+        }
+      }));
+
+      chartInstances.push(new Chart(document.getElementById('moveActivityChart'), {
+        type: 'line',
+        data: {
+          labels: moveActivityData.labels,
+          datasets: [
+            { label: moveActivityData.datasets[0].label, data: moveActivityData.datasets[0].values, borderColor: accentColor, backgroundColor: hexToRgba(accentColor, 0.12), tension: 0.35, fill: false },
+            { label: moveActivityData.datasets[1].label, data: moveActivityData.datasets[1].values, borderColor: warningColor, backgroundColor: hexToRgba(warningColor, 0.12), tension: 0.35, fill: false },
+            { label: moveActivityData.datasets[2].label, data: moveActivityData.datasets[2].values, borderColor: dangerColor, backgroundColor: hexToRgba(dangerColor, 0.12), tension: 0.35, fill: false }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: { ticks: { color: mutedColor } },
+            y: { beginAtZero: true, ticks: { color: mutedColor } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, padding: 18, boxWidth: 14 } },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}` } }
+          }
+        }
+      }));
+
+      chartInstances.push(new Chart(document.getElementById('lowStockChart'), {
+        type: 'bar',
+        data: {
+          labels: lowStockData.labels,
+          datasets: [
+            { label: 'Фактический остаток', data: lowStockData.stock, backgroundColor: infoColor, borderRadius: 6 },
+            { label: 'Минимальный остаток', data: lowStockData.minimum, backgroundColor: hexToRgba(dangerColor, 0.85), borderRadius: 6 }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          scales: {
+            x: { beginAtZero: true, ticks: { color: mutedColor } },
+            y: { ticks: { color: textColor } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textColor, padding: 18, boxWidth: 14 } },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const idx = items[0].dataIndex;
+                  return `${lowStockData.labels[idx]} — ${lowStockData.names[idx]}`;
+                }
+              }
+            }
+          }
+        }
+      }));
+    }
+
+    buildCharts();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          buildCharts();
+          break;
+        }
+      }
+    });
+    observer.observe(document.documentElement, { attributes: true });
+  })();
+</script>
+{% endblock %}

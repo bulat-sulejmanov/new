@@ -1,0 +1,35 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-danger">
+      <div class="card-header bg-danger text-white">
+        <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>УДАЛЕНИЕ ПОЗИЦИИ</h4>
+      </div>
+      <div class="card-body text-center p-5">
+        <i class="bi bi-trash display-1 text-danger mb-3"></i>
+        
+        <h5 class="mb-3">Удалить позицию из заявки?</h5>
+        
+        <div class="alert alert-light border mb-4">
+          <strong>Заявка:</strong> {{ supply_request.number }}<br>
+          <strong>Товар:</strong> {{ item.product.sku }} — {{ item.product.name }}<br>
+          <strong>Количество:</strong> {{ item.quantity_requested }} {{ item.product.get_unit_display }}
+        </div>
+        
+        <p class="text-muted mb-4">Это действие нельзя отменить</p>
+        
+        <form method="post" class="d-flex justify-content-center gap-3">
+          {% csrf_token %}
+          <a href="{% url 'supplyrequest_detail' supply_request.pk %}" class="btn btn-zzz-secondary btn-lg">
+            <i class="bi bi-x-lg me-1"></i>ОТМЕНА
+          </a>
+          <button type="submit" class="btn btn-zzz-danger btn-lg">
+            <i class="bi bi-trash me-1"></i>УДАЛИТЬ
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

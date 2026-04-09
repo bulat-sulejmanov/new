@@ -1,0 +1,647 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<style>
+  .po-item-search-card {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 1rem;
+  }
+  .po-item-grid .po-field-stack {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .po-item-grid .po-field-stack .form-label {
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    min-height: 1.4rem;
+  }
+  .po-item-grid .po-field-meta {
+    min-height: 1rem;
+    line-height: 1rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .po-item-grid .po-field-meta.is-placeholder {
+    visibility: hidden;
+  }
+  .po-item-grid .form-control,
+  .po-item-grid .form-select,
+  .po-item-grid .btn {
+    min-height: 42px;
+  }
+  .po-item-grid #auto-sum {
+    font-weight: 600;
+  }
+  .po-item-grid .po-submit-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .po-item-grid .po-submit-wrap .btn {
+    margin-top: auto;
+  }
+  .po-search-grid .po-search-stack {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .po-search-grid .po-search-stack .form-label {
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+    min-height: 1.4rem;
+  }
+  .po-search-grid .po-search-meta {
+    min-height: 1.25rem;
+    line-height: 1.25rem;
+    font-size: 0.875rem;
+    margin-top: 0.35rem;
+  }
+  .po-search-grid .po-search-meta.is-placeholder {
+    visibility: hidden;
+  }
+  .po-search-count {
+    min-height: 42px;
+  }
+  .po-search-grid .po-search-action {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .po-search-grid .po-search-action .btn {
+    min-height: 42px;
+  }
+  .po-orders-browser-list {
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .po-orders-browser-item {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    background: rgba(255, 255, 255, 0.45);
+  }
+  .po-orders-browser-item:hover {
+    color: inherit;
+    transform: translateY(-1px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    border-color: rgba(13, 202, 240, 0.35);
+  }
+  .po-orders-browser-item.is-current {
+    border-color: rgba(13, 202, 240, 0.75);
+    box-shadow: 0 0 0 0.18rem rgba(13, 202, 240, 0.12);
+  }
+  .po-orders-browser-meta {
+    font-size: 0.875rem;
+  }
+  @media (max-width: 991.98px) {
+    .po-item-grid .po-field-stack .form-label {
+      min-height: auto;
+    }
+    .po-item-grid .po-field-meta {
+      min-height: 1rem;
+    }
+  }
+</style>
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="zzz-gradient-text"><i class="bi bi-file-text me-2"></i>ЗАКАЗ {{ po.number }}</h3>
+      <div>
+        <span class="badge bg-{% if po.status == 'RECEIVED' %}success{% elif po.status == 'PLACED' %}primary{% elif po.status == 'CANCELLED' %}danger{% else %}secondary{% endif %} fs-6">
+          {{ po.get_status_display }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0"><i class="bi bi-filter-circle me-2"></i>БЫСТРЫЙ СПИСОК ЗАКАЗОВ</h5>
+        <span class="badge bg-secondary">{{ order_browser_orders|length }} шт.</span>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-3 align-items-end mb-4">
+          {% if request.GET.product %}
+            <input type="hidden" name="product" value="{{ request.GET.product }}">
+          {% endif %}
+
+          <div class="col-lg-4 col-md-6">
+            <label for="id_order_q" class="form-label">Поиск заказа</label>
+            <input type="text" id="id_order_q" name="order_q" class="form-control" value="{{ po_search_query }}" placeholder="Номер, поставщик или примечание">
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <label for="id_order_status" class="form-label">Статус</label>
+            <select id="id_order_status" name="order_status" class="form-select">
+              <option value="">Все статусы</option>
+              {% for status_code, status_name in po_status_choices %}
+                <option value="{{ status_code }}" {% if po_status_filter == status_code %}selected{% endif %}>{{ status_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <label for="id_order_supplier" class="form-label">Поставщик</label>
+            <select id="id_order_supplier" name="order_supplier" class="form-select">
+              <option value="">Все поставщики</option>
+              {% for supplier in po_supplier_choices %}
+                <option value="{{ supplier.pk }}" {% if po_supplier_filter == supplier.pk|stringformat:'s' %}selected{% endif %}>{{ supplier.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-lg-2 col-md-6">
+            <label for="id_order_sort" class="form-label">Сортировка</label>
+            <select id="id_order_sort" name="order_sort" class="form-select">
+              {% for sort_code, sort_name in po_sort_choices %}
+                <option value="{{ sort_code }}" {% if po_sort == sort_code %}selected{% endif %}>{{ sort_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-12 d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-zzz-primary">
+              <i class="bi bi-funnel me-1"></i>ПРИМЕНИТЬ
+            </button>
+            <a href="{% url 'po_edit' po.pk %}{% if request.GET.product %}?product={{ request.GET.product }}{% endif %}" class="btn btn-zzz-secondary">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>СБРОСИТЬ
+            </a>
+            <a href="{% url 'po_list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-outline-secondary">
+              <i class="bi bi-list-ul me-1"></i>ПОЛНЫЙ СПИСОК
+            </a>
+          </div>
+        </form>
+
+        <div class="po-orders-browser-list d-grid gap-2">
+          {% for browser_po in order_browser_orders %}
+            <a href="{% url 'po_edit' browser_po.pk %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
+               class="po-orders-browser-item {% if browser_po.pk == po.pk %}is-current{% endif %}">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-bold zzz-text-glow">{{ browser_po.number }}</div>
+                  <div class="po-orders-browser-meta text-muted">{{ browser_po.supplier.name }}</div>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-{% if browser_po.status == 'RECEIVED' %}success{% elif browser_po.status == 'PLACED' %}primary{% elif browser_po.status == 'CANCELLED' %}danger{% else %}secondary{% endif %}">
+                    {{ browser_po.get_status_display }}
+                  </span>
+                  {% if browser_po.pk == po.pk %}
+                    <div class="small text-info mt-1">Текущий заказ</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="po-orders-browser-meta text-muted mt-2 d-flex flex-wrap gap-3">
+                <span><i class="bi bi-calendar-event me-1"></i>Ожидается: {{ browser_po.expected_date|date:'d.m.Y'|default:'—' }}</span>
+                <span><i class="bi bi-clock-history me-1"></i>Создан: {{ browser_po.created_at|date:'d.m.Y H:i' }}</span>
+              </div>
+            </a>
+          {% empty %}
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+              По этим условиям заказы не найдены.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Основная информация о заказе -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Информация о заказе</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          
+          <div class="col-md-4">
+            <label class="form-label">Номер</label>
+            {{ form.number }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Поставщик</label>
+            {{ form.supplier }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Статус</label>
+            {{ form.status }}
+          </div>
+          <div class="col-md-6">
+           <label class="form-label">Ожидаемая дата</label>
+           <input type="date" name="expected_date" class="form-control" 
+           value="{{ po.expected_date|date:'Y-m-d' }}" 
+           id="id_expected_date">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Примечания</label>
+            {{ form.notes }}
+          </div>
+          
+          <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+            <button class="btn btn-zzz-primary" name="save_po">
+              <i class="bi bi-save me-1"></i>СОХРАНИТЬ ЗАКАЗ
+            </button>
+            <a class="btn btn-outline-primary" href="{% url 'po_export_docx' po.pk %}">
+              <i class="bi bi-file-earmark-word me-1"></i>СКАЧАТЬ WORD
+            </a>
+            <a class="btn btn-outline-danger" href="{% url 'po_export_pdf' po.pk %}">
+              <i class="bi bi-file-earmark-pdf me-1"></i>СКАЧАТЬ PDF
+            </a>
+            <a class="btn btn-zzz-secondary" href="{% url 'po_list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">К СПИСКУ</a>
+            <span class="small text-muted">Word — для редактирования, PDF — для финального сохранения.</span>
+
+            {% if po.status != 'RECEIVED' %}
+            <button type="submit"
+                    class="btn btn-zzz-danger ms-md-auto"
+                    formaction="{% url 'po_delete' po.pk %}"
+                    formmethod="post"
+                    formnovalidate
+                    onclick="return confirm('Удалить заказ {{ po.number }}? Это действие нельзя отменить.');">
+              <i class="bi bi-trash me-1"></i>УДАЛИТЬ ЗАКАЗ
+            </button>
+            {% else %}
+            <span class="small text-muted ms-md-auto">Полученные заказы не удаляются, чтобы не терять историю.</span>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Позиции заказа -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>ПОЗИЦИИ ЗАКАЗА</h5>
+        <span class="badge bg-secondary">{{ items.count }} позиций</span>
+      </div>
+      <div class="card-body">
+        
+        <!-- Форма добавления — ЕДИНСТВЕННАЯ -->
+        <form method="post" class="mb-4 border-bottom pb-4" id="add-item-form">
+          {% csrf_token %}
+          
+          <!-- Скрытые поля для автоподстановки -->
+          {% if preselected_product %}
+          <input type="hidden" id="auto_product_id" value="{{ preselected_product.id }}">
+          <input type="hidden" id="auto_quantity_val" value="{{ auto_quantity }}">
+          <input type="hidden" id="auto_price_val" value="{{ auto_price|default:'' }}">
+          {% endif %}
+          
+          <div class="row g-3 po-item-grid">
+            <div class="col-12">
+              <div class="po-item-search-card p-3">
+                <div class="row g-2 po-search-grid">
+                  <div class="col-lg-8 col-md-7 col-sm-12">
+                    <div class="po-search-stack">
+                      <label class="form-label small">
+                        <i class="bi bi-search me-1"></i>Быстрый поиск товара
+                      </label>
+                      <input type="text"
+                             id="product-filter"
+                             class="form-control"
+                             placeholder="Введите артикул или название..."
+                             autocomplete="off">
+                      <div class="po-search-meta text-muted">Поиск работает по артикулу и наименованию</div>
+                    </div>
+                  </div>
+                  <div class="col-lg-3 col-md-3 col-sm-6">
+                    <div class="po-search-stack">
+                      <label class="form-label small">Найдено</label>
+                      <div class="form-control bg-white d-flex align-items-center po-search-count">
+                        <span class="badge bg-secondary" id="showing-count">0</span>
+                        <span class="small text-muted ms-2">товаров</span>
+                      </div>
+                      <div class="po-search-meta is-placeholder">—</div>
+                    </div>
+                  </div>
+                  <div class="col-lg-1 col-md-2 col-sm-6">
+                    <div class="po-search-action">
+                      <label class="form-label small">&nbsp;</label>
+                      <button type="button" id="reset-product-filter" class="btn btn-zzz-secondary w-100" title="Сбросить фильтр">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                      <div class="po-search-meta is-placeholder">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-12">
+              <div class="po-field-stack">
+                <label class="form-label">Товар <span class="text-danger">*</span></label>
+                <div class="po-field-meta is-placeholder">—</div>
+                {{ item_form.product }}
+              </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-sm-6">
+              <div class="po-field-stack">
+                <label class="form-label">Кол-во <span class="text-danger">*</span></label>
+                <div class="po-field-meta is-placeholder">—</div>
+                {{ item_form.quantity }}
+              </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-sm-6">
+              <div class="po-field-stack">
+                <label class="form-label">Цена, ₽</label>
+                <div class="po-field-meta text-success fw-bold" id="price-hint">Текущая: —</div>
+                {{ item_form.price }}
+              </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-sm-6">
+              <div class="po-field-stack">
+                <label class="form-label">Сумма</label>
+                <div class="po-field-meta is-placeholder">—</div>
+                <input type="text" class="form-control" id="auto-sum" readonly placeholder="—">
+              </div>
+            </div>
+
+            <div class="col-lg-2 col-md-12 col-sm-6">
+              <div class="po-submit-wrap">
+                <label class="form-label">&nbsp;</label>
+                <div class="po-field-meta is-placeholder">—</div>
+                <button class="btn btn-zzz-primary w-100" name="add_item">
+                  <i class="bi bi-plus-lg me-1"></i>ДОБАВИТЬ
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Таблица с суммами -->
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Артикул</th>
+                <th>Наименование</th>
+                <th class="text-center">Количество</th>
+                <th class="text-end">Цена</th>
+                <th class="text-end">Сумма</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in items %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td class="zzz-text-glow">{{ it.product.sku }}</td>
+                  <td>{{ it.product.name }}</td>
+                  <td class="text-center">
+                    {{ it.quantity|floatformat:0 }} {{ it.product.get_unit_display }}
+                  </td>
+                  <td class="text-end zzz-mono">
+                    {% if it.price %}
+                      {{ it.price|floatformat:2 }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end zzz-mono fw-bold">
+                    {% if it.price %}
+                      {{ it.get_sum|floatformat:2 }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                    Нет позиций. Добавьте товары выше.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            {% if items %}
+            <tfoot>
+              <tr class="table-active">
+                <td colspan="5" class="text-end fw-bold fs-5">ИТОГО ПО ЗАКАЗУ:</td>
+                <td class="text-end zzz-mono fw-bold fs-4 text-success">
+                  {{ po.total_sum|floatformat:2 }} ₽
+                </td>
+              </tr>
+            </tfoot>
+            {% endif %}
+          </table>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.querySelector('select[name="product"]');
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    const priceInput = document.querySelector('input[name="price"]');
+    const priceHint = document.getElementById('price-hint');
+    const autoSum = document.getElementById('auto-sum');
+    const productFilter = document.getElementById('product-filter');
+    const resetProductFilter = document.getElementById('reset-product-filter');
+    const showingCount = document.getElementById('showing-count');
+    const placeholderOption = productSelect ? productSelect.querySelector('option')?.cloneNode(true) : null;
+    const allProductOptions = productSelect
+        ? Array.from(productSelect.querySelectorAll('option')).slice(1).map(option => option.cloneNode(true))
+        : [];
+    
+    // Настройка полей
+    if (quantityInput) {
+        quantityInput.setAttribute('step', '1');
+        quantityInput.setAttribute('min', '1');
+    }
+    
+    if (priceInput) {
+        priceInput.setAttribute('step', '0.01');
+        priceInput.setAttribute('min', '0');
+        priceInput.setAttribute('placeholder', '0.00');
+    }
+    
+    // Расчет суммы
+    function calculateSum() {
+        const qty = parseFloat(quantityInput?.value) || 0;
+        const price = parseFloat(priceInput?.value) || 0;
+        if (qty > 0 && price > 0) {
+            autoSum.value = (qty * price).toFixed(2) + ' ₽';
+        } else {
+            autoSum.value = '—';
+        }
+    }
+    
+    // Обновление подсказки цены
+    function updatePriceHint(price) {
+        if (priceHint && price) {
+            priceHint.textContent = 'Текущая: ' + parseFloat(price).toFixed(2) + ' ₽';
+        }
+    }
+
+    // Фильтр товаров по артикулу и названию
+    function applyProductFilter() {
+        if (!productSelect || !placeholderOption) {
+            return;
+        }
+
+        const query = (productFilter?.value || '').toLowerCase().trim();
+        const currentValue = productSelect.value;
+
+        const filteredOptions = allProductOptions.filter(option => {
+            const text = option.textContent.toLowerCase();
+            return !query || text.includes(query);
+        });
+
+        productSelect.innerHTML = '';
+        productSelect.appendChild(placeholderOption.cloneNode(true));
+        filteredOptions.forEach(option => {
+            productSelect.appendChild(option.cloneNode(true));
+        });
+
+        if (currentValue && filteredOptions.some(option => option.value === currentValue)) {
+            productSelect.value = currentValue;
+        } else if (query && filteredOptions.length === 1) {
+            productSelect.value = filteredOptions[0].value;
+            productSelect.dispatchEvent(new Event('change'));
+        }
+
+        if (showingCount) {
+            showingCount.textContent = filteredOptions.length;
+        }
+    }
+
+    
+    // Только цифры в количестве
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value === '' || this.value === '0') {
+                this.value = '1';
+            }
+            calculateSum();
+        });
+    }
+    
+    if (priceInput) {
+        priceInput.addEventListener('input', calculateSum);
+    }
+
+    if (productFilter) {
+        productFilter.addEventListener('input', applyProductFilter);
+    }
+
+    if (resetProductFilter) {
+        resetProductFilter.addEventListener('click', function() {
+            if (productFilter) {
+                productFilter.value = '';
+                productFilter.focus();
+            }
+            applyProductFilter();
+            if (productSelect) {
+                productSelect.value = '';
+            }
+            if (priceHint) {
+                priceHint.textContent = 'Текущая: —';
+            }
+            if (priceInput) {
+                priceInput.value = '';
+            }
+            calculateSum();
+        });
+    }
+
+    
+    // Автоподстановка цены при смене товара
+    if (productSelect) {
+        productSelect.addEventListener('change', function() {
+            const productId = this.value;
+            if (!productId) {
+                priceHint.textContent = 'Текущая: —';
+                priceInput.value = '';
+                calculateSum();
+                return;
+            }
+            
+            fetch(`/api/product-price/${productId}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.price) {
+                        priceHint.textContent = 'Текущая: ' + parseFloat(data.price).toFixed(2) + ' ₽';
+                        priceInput.value = data.price;
+                    } else {
+                        priceHint.textContent = 'Текущая: нет';
+                        priceInput.value = '';
+                    }
+                    calculateSum();
+                })
+                .catch(() => {
+                    priceHint.textContent = 'Текущая: —';
+                });
+        });
+    }
+    
+    // === АВТОПОДСТАНОВКА ИЗ GET-ПАРАМЕТРОВ ===
+    const autoProductId = document.getElementById('auto_product_id');
+    const autoQuantity = document.getElementById('auto_quantity_val');
+    const autoPrice = document.getElementById('auto_price_val');
+    
+    if (autoProductId && autoProductId.value) {
+        // Подставляем товар
+        if (productSelect) {
+            productSelect.value = autoProductId.value;
+            productSelect.style.background = 'rgba(13, 202, 240, 0.1)';
+            productSelect.style.borderColor = '#0dcaf0';
+            
+            // Триггерим событие change для загрузки цены (если цена не передана)
+            if (!autoPrice || !autoPrice.value) {
+                productSelect.dispatchEvent(new Event('change'));
+            }
+        }
+        
+        // Подставляем количество
+        if (quantityInput && autoQuantity && autoQuantity.value) {
+            quantityInput.value = autoQuantity.value;
+        }
+        
+        // Подставляем цену (если есть)
+        if (priceInput && autoPrice && autoPrice.value) {
+            priceInput.value = autoPrice.value;
+            updatePriceHint(autoPrice.value);
+        }
+        
+        // Пересчитываем сумму
+        calculateSum();
+    }
+    
+    // Гарантия целого числа при отправке
+    const form = document.getElementById('add-item-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (quantityInput) {
+                quantityInput.value = Math.round(parseFloat(quantityInput.value) || 1);
+            }
+        });
+    }
+    
+    applyProductFilter();
+
+    // Начальный расчет
+    calculateSum();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card border-danger"><div class="card-header bg-danger bg-opacity-10 py-3"><h4 class="mb-0"><i class="bi bi-trash me-2"></i>УДАЛЕНИЕ ЗАЯВКИ {{ supply_request.number }}</h4></div><div class="card-body"><p>Вы действительно хотите удалить заявку <strong>{{ supply_request.number }}</strong>?</p><p class="text-muted mb-4">Активные резервы по этой заявке будут отменены, а связанные задачи на отбор и позиции удалятся каскадно.</p><form method="post">{% csrf_token %}<div class="d-flex justify-content-end gap-2"><a href="{% url 'supplyrequest_detail' supply_request.pk %}" class="btn btn-zzz-secondary">ОТМЕНА</a><button type="submit" class="btn btn-zzz-danger">УДАЛИТЬ</button></div></form></div></div></div></div>
+{% endblock %}

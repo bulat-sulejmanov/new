@@ -1,0 +1,164 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="zzz-gradient-text"><i class="bi bi-file-text me-2"></i>ЗАКАЗЫ ПОСТАВЩИКАМ</h3>
+  {% if user.is_staff %}
+    <a href="{% url 'po_create' %}" class="btn btn-zzz-primary">
+      <i class="bi bi-plus-lg me-1"></i>НОВЫЙ ЗАКАЗ
+    </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body border-bottom border-secondary border-opacity-25">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-lg-4 col-md-6">
+        <label for="id_order_q" class="form-label">Поиск</label>
+        <input
+          type="text"
+          id="id_order_q"
+          name="order_q"
+          class="form-control"
+          placeholder="Номер, поставщик или примечание"
+          value="{{ po_search_query }}"
+        >
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label for="id_order_status" class="form-label">Статус</label>
+        <select id="id_order_status" name="order_status" class="form-select">
+          <option value="">Все статусы</option>
+          {% for status_code, status_name in po_status_choices %}
+            <option value="{{ status_code }}" {% if po_status_filter == status_code %}selected{% endif %}>{{ status_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label for="id_order_supplier" class="form-label">Поставщик</label>
+        <select id="id_order_supplier" name="order_supplier" class="form-select">
+          <option value="">Все поставщики</option>
+          {% for supplier in po_supplier_choices %}
+            <option value="{{ supplier.pk }}" {% if po_supplier_filter == supplier.pk|stringformat:'s' %}selected{% endif %}>{{ supplier.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-lg-2 col-md-6">
+        <label for="id_order_sort" class="form-label">Сортировка</label>
+        <select id="id_order_sort" name="order_sort" class="form-select">
+          {% for sort_code, sort_name in po_sort_choices %}
+            <option value="{{ sort_code }}" {% if po_sort == sort_code %}selected{% endif %}>{{ sort_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12 d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-zzz-primary">
+          <i class="bi bi-funnel me-1"></i>ПРИМЕНИТЬ
+        </button>
+        <a href="{% url 'po_list' %}" class="btn btn-zzz-secondary">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>СБРОСИТЬ
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th class="zzz-dim">НОМЕР</th>
+            <th class="zzz-dim">ПОСТАВЩИК</th>
+            <th class="zzz-dim">СТАТУС</th>
+            <th class="zzz-dim">ОЖИДАЕТСЯ</th>
+            <th class="zzz-dim">СОЗДАН</th>
+            {% if user.is_staff %}<th class="zzz-dim text-end">ДЕЙСТВИЯ</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for po in purchase_orders %}
+            <tr>
+              <td class="zzz-text-glow fw-bold">{{ po.number }}</td>
+              <td>{{ po.supplier }}</td>
+              <td>
+                <span class="badge bg-{% if po.status == 'RECEIVED' %}success{% elif po.status == 'PLACED' %}primary{% elif po.status == 'CANCELLED' %}danger{% else %}secondary{% endif %}">
+                  {{ po.get_status_display }}
+                </span>
+              </td>
+              <td>{{ po.expected_date|date:'d.m.Y'|default:"—" }}</td>
+              <td>{{ po.created_at|date:'d.m.Y H:i' }}</td>
+              {% if user.is_staff %}
+              <td class="text-end">
+                <a href="{% url 'po_edit' po.pk %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-zzz-secondary btn-sm">
+                  <i class="bi bi-pencil me-1"></i>Открыть
+                </a>
+              </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="{% if user.is_staff %}6{% else %}5{% endif %}" class="text-center py-4 zzz-dim">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                {% if po_search_query or po_status_filter or po_supplier_filter %}
+                  Ничего не найдено по текущим фильтрам.
+                  <div class="mt-3">
+                    <a href="{% url 'po_list' %}" class="btn btn-zzz-secondary btn-sm">Показать все заказы</a>
+                  </div>
+                {% else %}
+                  НЕТ ЗАКАЗОВ
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if is_paginated %}
+  <div class="card-footer border-top border-secondary border-opacity-25 py-2">
+    <nav>
+      <ul class="pagination pagination-sm justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{{ query_params }}"><i class="bi bi-chevron-double-left"></i></a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        <li class="page-item active">
+          <span class="page-link" style="background: var(--zzz-accent); color: #000; border-color: var(--zzz-accent);">
+            {{ page_obj.number }} / {{ paginator.num_pages }}
+          </span>
+        </li>
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ paginator.num_pages }}{{ query_params }}">
+              <i class="bi bi-chevron-double-right"></i>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

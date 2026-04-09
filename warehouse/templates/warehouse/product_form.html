@@ -1,0 +1,147 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">{% if object %}Редактирование{% else %}Новый{% endif %} товар</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          {% for field in form %}
+            {% if field.field.widget.input_type == 'checkbox' %}
+              <div class="mb-3">
+                <div class="form-check form-switch zzz-switch-panel">
+                  {{ field }}
+                  <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+          
+          {% if object %}
+          <!-- БЛОК ЦЕНЫ (только при редактировании) -->
+          <div class="card mb-3 border-info">
+            <div class="card-header bg-info bg-opacity-10">
+              <h5 class="mb-0"><i class="bi bi-currency-exchange me-2"></i>ЦЕНА ТОВАРА</h5>
+            </div>
+            <div class="card-body">
+              {% if current_price %}
+                <div class="alert alert-success mb-3">
+                  <strong>Текущая цена:</strong> 
+                  <span class="fs-4 fw-bold">{{ current_price.price|floatformat:2 }} ₽</span>
+                  {% if current_price.supplier %}
+                    <br><small>от {{ current_price.supplier.name }}</small>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="alert alert-warning mb-3">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  Цена не установлена
+                </div>
+              {% endif %}
+              
+              <h6 class="mb-3">{% if current_price %}Обновить{% else %}Установить{% endif %} цену:</h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-bold">Цена <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <input type="number" name="new_price" class="form-control" 
+                           step="0.01" min="0.01" 
+                           value="{{ current_price.price|default:'' }}"
+                           placeholder="0.00">
+                    <span class="input-group-text">₽</span>
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label">Поставщик цены</label>
+                  <select name="price_supplier" class="form-select">
+                    <option value="">— Основной поставщик —</option>
+                    {% for sup in all_suppliers %}
+                      <option value="{{ sup.id }}" 
+                              {% if current_price.supplier_id == sup.id %}selected{% endif %}>
+                        {{ sup.name|truncatechars:35 }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" name="is_preferred_price" 
+                           id="is_preferred" value="1" checked>
+                    <label class="form-check-label" for="is_preferred">
+                      Предпочтительная
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              {% if price_history %}
+              <hr class="my-3">
+              <h6 class="text-muted">История цен (последние 5):</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th>Дата</th>
+                      <th>Цена</th>
+                      <th>Поставщик</th>
+                      <th>Статус</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for ph in price_history %}
+                    <tr {% if ph.is_preferred %}class="table-success"{% endif %}>
+                      <td>{{ ph.valid_from|date:"d.m.Y" }}</td>
+                      <td>{{ ph.price|floatformat:2 }} ₽</td>
+                      <td>{{ ph.supplier|default:"—" }}</td>
+                      <td>
+                        {% if ph.is_preferred %}
+                          <span class="badge bg-success">Предпочт.</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Архив</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          
+          <div class="d-flex gap-2 justify-content-end">
+            <a class="btn btn-zzz-secondary" href="{% url 'product_list' %}">
+              Отмена
+            </a>
+            <button class="btn btn-zzz-primary">
+              <i class="bi bi-save me-2"></i>Сохранить
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

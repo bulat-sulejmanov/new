@@ -1,0 +1,74 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card border-0">
+      <div class="card-body p-4 text-center">
+        <div class="mb-4">
+          <i class="bi bi-grid-3x3-gap-fill display-1 zzz-text-glow"></i>
+        </div>
+        <h3 class="mb-4 zzz-gradient-text">ТЕХСНАБ</h3>
+        <p class="text-muted mb-4">СИСТЕМА УПРАВЛЕНИЯ СКЛАДОМ</p>
+        
+        <form method="post" novalidate>
+          {% csrf_token %}
+          
+          {% if form.errors %}
+            <div class="alert alert-danger mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>ОШИБКА АВТОРИЗАЦИИ
+            </div>
+          {% endif %}
+          
+          <div class="mb-3">
+            <input type="text" name="username" class="form-control form-control-lg" 
+                   placeholder="ИДЕНТИФИКАТОР" autofocus required>
+          </div>
+          
+          <div class="mb-4 position-relative">
+  <input type="password" name="password" id="password-field" 
+         class="form-control form-control-lg pe-5" 
+         placeholder="ПАРОЛЬ" required>
+  <button type="button" id="toggle-password" 
+          class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2"
+          style="border: none; background: none; z-index: 10;">
+    <i class="bi bi-eye" id="toggle-icon"></i>
+  </button>
+</div>
+
+<script>
+document.getElementById('toggle-password').addEventListener('click', function() {
+    const passwordField = document.getElementById('password-field');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('bi-eye');
+        toggleIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('bi-eye-slash');
+        toggleIcon.classList.add('bi-eye');
+    }
+});
+</script>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-zzz-primary btn-lg">
+              <i class="bi bi-box-arrow-in-right me-2"></i>ВХОД В СИСТЕМУ
+            </button>
+          </div>
+        </form>
+        
+        <hr class="my-4">
+        
+        <p class="mb-0 text-muted">НЕТ ДОСТУПА? 
+          <a href="{% url 'signup' %}" class="zzz-gradient-text fw-bold">
+            РЕГИСТРАЦИЯ
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,50 @@
+{% extends 'warehouse/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>ОБЪЕКТ ПОТРЕБЛЕНИЯ</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Код объекта <span class="text-danger">*</span></label>
+              {{ form.code }}
+              <div class="form-text">Например: СКВ-45, ЦЕХ-12, НГДУ-АЗН</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Тип объекта <span class="text-danger">*</span></label>
+              {{ form.object_type }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Наименование <span class="text-danger">*</span></label>
+              {{ form.name }}
+              <div class="form-text">Например: Скважина №45, Цех подготовки нефти</div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Участок/Месторождение</label>
+              {{ form.location }}
+              <div class="form-text">Например: НГДУ Азнакаево, Ромашкинское месторождение</div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check mt-4">
+                {{ form.is_active }}
+                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                  Активен
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'object_list' %}" class="btn btn-zzz-secondary">ОТМЕНА</a>
+            <button type="submit" class="btn btn-zzz-primary">СОХРАНИТЬ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

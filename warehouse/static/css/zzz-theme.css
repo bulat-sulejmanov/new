@@ -1,0 +1,1578 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* ==========================================
+   ТЕМНАЯ ТЕМА (по умолчанию)
+   ========================================== */
+:root {
+  --zzz-bg: #0a0a0f;
+  --zzz-surface: #141419;
+  --zzz-surface-hover: #1e1e26;
+  --zzz-border: #2a2a35;
+  --zzz-border-bold: #ffffff;
+  --zzz-accent: #ffffff;
+  --zzz-accent-hover: #e0e0e0;
+  --zzz-danger: #c45c5c;
+  --zzz-danger-soft: #8a4444;
+  --zzz-warning: #cc8a33;
+  --zzz-info: #5a9aa8;
+  --zzz-text: #ffffff;
+  --zzz-text-secondary: #8b8b9a;
+  --zzz-glow: rgba(255, 255, 255, 0.15);
+}
+
+body {
+  background-color: var(--zzz-bg);
+  background-image: 
+    radial-gradient(circle at 50% 0%, #1a1a2e 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+  color: var(--zzz-text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Типографика */
+h1, h2, h3, h4, h5, h6, .navbar-brand, .btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Навбар */
+.navbar {
+  background: rgba(10, 10, 15, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--zzz-border-bold);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.navbar-brand {
+  color: var(--zzz-accent) !important;
+  font-size: 1.5rem;
+  text-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+.navbar-nav .nav-link {
+  color: var(--zzz-text-secondary) !important;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  margin: 0 0.2rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--zzz-accent) !important;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid var(--zzz-border-bold);
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Кнопки с жирной обводкой */
+.btn {
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 3px solid;
+  padding: 0.6rem 1.2rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Кнопка "Новая запись" и подобные - стиль как у primary */
+.btn-zzz-primary {
+  background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
+  color: #000;
+  border-color: #000;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.btn-zzz-primary:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  color: #000;
+  border-color: #333;
+}
+
+/* Кнопка "Новое движение" - не синяя, а как остальные primary */
+.btn-primary {
+  background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%) !important;
+  color: #000 !important;
+  border: 3px solid #000 !important;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+.btn-zzz-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%) !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  color: #000 !important;
+  border-color: #333 !important;
+}
+
+.btn-zzz-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--zzz-text);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.btn-zzz-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--zzz-accent);
+  color: var(--zzz-accent);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Мягкая красная кнопка удаления */
+.btn-zzz-danger {
+  background: linear-gradient(135deg, #a85a5a 0%, #c45c5c 100%);
+  color: #fff;
+  border-color: #8a4444;
+  box-shadow: 0 4px 15px rgba(196, 92, 92, 0.25);
+}
+
+.btn-zzz-danger:hover {
+  background: linear-gradient(135deg, #c45c5c 0%, #d47070 100%);
+  box-shadow: 0 6px 20px rgba(196, 92, 92, 0.35);
+  transform: translateY(-2px);
+  border-color: #a85a5a;
+}
+
+/* Приглушённая красная кнопка для карточки заказа */
+.btn-zzz-danger-soft,
+.card.border-danger .btn-zzz-danger,
+.card.border-danger .btn {
+  background: linear-gradient(135deg, #9a6a6a 0%, #b07070 100%) !important;
+  color: #f0e0e0 !important;
+  border: 3px solid #7a5050 !important;
+  box-shadow: 0 4px 12px rgba(160, 100, 100, 0.2) !important;
+  font-weight: 600;
+}
+
+.btn-zzz-danger-soft:hover,
+.card.border-danger .btn-zzz-danger:hover,
+.card.border-danger .btn:hover {
+  background: linear-gradient(135deg, #b07070 0%, #c08080 100%) !important;
+  border-color: #9a6a6a !important;
+  box-shadow: 0 6px 18px rgba(160, 100, 100, 0.3) !important;
+  transform: translateY(-2px);
+  color: #ffffff !important;
+}
+
+.btn-zzz-logout, .btn-zzz-theme {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  color: var(--zzz-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.3s;
+}
+
+.btn-zzz-logout:hover {
+  background: var(--zzz-danger);
+  border-color: #fff;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(196, 92, 92, 0.4);
+  transform: rotate(90deg);
+}
+
+.btn-zzz-theme:hover {
+  background: var(--zzz-accent);
+  border-color: #000;
+  color: #000;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Таблицы - с разделяющей полоской под заголовками */
+.table {
+  color: var(--zzz-text);
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.table thead th {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--zzz-text-secondary);
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: none;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.4);
+  padding: 1rem;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+/* Дополнительная разделяющая полоска под заголовками */
+.table thead th::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.table thead tr {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.table tbody tr {
+  background: transparent;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.table td {
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  vertical-align: middle;
+  background: transparent !important;
+  color: var(--zzz-text) !important;
+}
+
+/* Карточки с ОЧЕНЬ жирной обводкой для стат-карточек */
+.card {
+  background: linear-gradient(135deg, rgba(20,20,25,0.8) 0%, rgba(10,10,15,0.9) 100%);
+  border: 3px solid rgba(255,255,255,0.4);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  color: var(--zzz-text) !important;
+}
+
+/* Стат-карточки на дашборде - сверху жирная обводка */
+.card.shadow-sm {
+  border: 5px solid rgba(255,255,255,0.6);
+  box-shadow: 0 0 20px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.card.shadow-sm:hover {
+  border-color: rgba(255,255,255,0.9);
+  box-shadow: 0 0 30px rgba(255,255,255,0.2), 0 12px 40px rgba(0,0,0,0.6) !important;
+  transform: translateY(-3px);
+  transition: all 0.3s ease;
+}
+
+/* Карточка с мягкой красной рамкой для критичных уведомлений */
+.card.border-danger {
+  border: 3px solid rgba(196, 92, 92, 0.6) !important;
+  box-shadow: 0 0 20px rgba(196, 92, 92, 0.15), 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.card.border-danger .card-header {
+  background: rgba(196, 92, 92, 0.15) !important;
+  border-bottom: 3px solid rgba(196, 92, 92, 0.4);
+  color: #e8a0a0 !important;
+}
+
+.card-header {
+  background: rgba(255,255,255,0.03);
+  border-bottom: 3px solid rgba(255,255,255,0.3);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--zzz-accent);
+  letter-spacing: 1px;
+  padding: 1rem 1.5rem;
+}
+
+/* ИСПРАВЛЕНИЕ: Карточка-footer всегда тёмный в тёмной теме */
+.card-footer {
+  background: rgba(255,255,255,0.03) !important;
+  border-top: 3px solid rgba(255,255,255,0.3) !important;
+  color: var(--zzz-text-secondary) !important;
+  padding: 1rem 1.5rem;
+}
+
+.card-footer.bg-light {
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--zzz-text-secondary) !important;
+}
+
+.card-footer .text-muted {
+  color: var(--zzz-text-secondary) !important;
+}
+
+.card-body {
+  color: var(--zzz-text) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Таблица внутри карточки - принудительно белый текст */
+.card .table {
+  color: #ffffff !important;
+  --bs-table-color: #ffffff;
+}
+
+.card .table thead th {
+  color: var(--zzz-text-secondary) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+
+.card .table tbody td {
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+.card .table tbody tr {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+.card .table tbody tr:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Специально для таблицы рекомендаций заказа */
+.card.border-danger .table {
+  color: #ffffff !important;
+}
+
+.card.border-danger .table td,
+.card.border-danger .table th {
+  color: #ffffff !important;
+}
+
+.card.border-danger .table tbody tr {
+  color: #ffffff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: table-light в тёмной теме */
+.card .table-light {
+  --bs-table-bg: rgba(255,255,255,0.05) !important;
+  --bs-table-color: #ffffff !important;
+  background-color: rgba(255,255,255,0.05) !important;
+  color: #ffffff !important;
+}
+
+.card .table-light th {
+  background-color: rgba(255,255,255,0.05) !important;
+  color: var(--zzz-text-secondary) !important;
+}
+
+/* Карточки внутри таблиц (reorder_suggestions) - без обводки */
+.card .table tbody tr,
+.card .table thead th,
+.card .table td {
+  border: none;
+  background: transparent !important;
+}
+
+/* Специально для таблицы рекомендаций заказа */
+.card .table {
+  border: none;
+}
+
+.card .table tbody tr:hover {
+  border: none;
+  background: rgba(255,255,255,0.03);
+}
+
+.display-6 {
+  color: #ffffff !important;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  font-weight: 700;
+}
+
+.card-title {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+/* Значки с обводкой - мягкие цвета */
+.badge {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  border: 2px solid;
+}
+
+.bg-success {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Мягкий жёлтый для предупреждений */
+.bg-warning {
+  background: rgba(204, 138, 51, 0.2) !important;
+  color: #e6b366;
+  border-color: rgba(204, 138, 51, 0.7);
+}
+
+/* Мягкий красный для опасности */
+.bg-danger {
+  background: rgba(196, 92, 92, 0.2) !important;
+  color: #e8a0a0;
+  border-color: rgba(196, 92, 92, 0.7);
+}
+
+/* Мягкий красный текст */
+.text-danger {
+  color: #d48585 !important;
+}
+
+/* Стиль "НОРМАЛЬНЫЙ" - бирюзовый/голубой как на скриншоте */
+.bg-info,
+.badge.bg-info {
+  background: rgba(90, 154, 168, 0.2) !important;
+  color: #7ac0d0 !important;
+  border: 2px solid rgba(90, 154, 168, 0.7) !important;
+}
+
+/* Стиль "РАЗМЕЩЁН" - такой же как "НОРМАЛЬНЫЙ" */
+.bg-primary,
+.badge.bg-primary {
+  background: rgba(90, 154, 168, 0.2) !important;
+  color: #7ac0d0 !important;
+  border: 2px solid rgba(90, 154, 168, 0.7) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Белый бейдж bg-white в тёмной теме */
+.bg-white {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #000000 !important;
+  border: 2px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Бейдж внутри card.border-danger - должен оставаться с цветом */
+:root[data-theme="dark"] .card.border-danger .badge.bg-white {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Любой бейдж с bg-white внутри карточек */
+.card .badge.bg-white {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Формы с обводкой */
+.form-control, .form-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  color: var(--zzz-text);
+  border-radius: 10px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.form-control:focus, .form-select:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--zzz-border-bold);
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+  color: var(--zzz-text);
+}
+
+/* Пагинация с обводкой */
+.pagination .page-link {
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  color: var(--zzz-text-secondary);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+}
+
+.pagination .page-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--zzz-accent);
+  border-color: var(--zzz-border-bold);
+}
+
+.pagination .active .page-link {
+  background: var(--zzz-accent);
+  border-color: #000;
+  color: #000;
+}
+
+/* Алерты с обводкой - мягкий красный */
+.alert {
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+  border-radius: 12px;
+}
+
+.alert-danger {
+  background: rgba(196, 92, 92, 0.12) !important;
+  border-color: rgba(196, 92, 92, 0.5) !important;
+  color: #e8c0c0 !important;
+}
+
+/* Сканлайн эффект (только для темной) */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.1) 50%,
+    rgba(0,0,0,0.1)
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.2;
+}
+
+/* Навигация ZZZ с обводкой */
+.nav-zzz {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.2rem !important;
+  margin: 0 0.3rem;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  text-align: center;
+}
+
+.nav-zzz i {
+  font-size: 1.8rem;
+  margin-bottom: 0.2rem;
+  display: block;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 0 transparent);
+  pointer-events: none;
+}
+
+.nav-zzz span {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  display: block;
+}
+
+.nav-zzz:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--zzz-border-bold);
+  transform: translateY(-2px);
+}
+
+.nav-zzz:hover i {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  transform: scale(1.1);
+}
+
+.nav-zzz:hover span {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 991px) {
+  .nav-zzz {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0.8rem 1rem !important;
+    margin: 0.2rem 0;
+    min-width: auto;
+  }
+  
+  .nav-zzz i {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    margin-right: 0.8rem;
+    width: 30px;
+    text-align: center;
+  }
+  
+  .nav-zzz span {
+    font-size: 0.9rem;
+  }
+}
+
+/* Селекты */
+select.form-control,
+select.form-select {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 3px solid #ced4da;
+}
+
+select.form-control option,
+select.form-select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 8px;
+}
+
+/* ==========================================
+   СВЕТЛАЯ ТЕМА - БЕЛЫЙ ФОН С ЕДВА ЗАМЕТНЫМИ ПОЛОСКАМИ
+   ========================================== */
+:root[data-theme="light"] {
+  --zzz-bg: #ffffff;
+  --zzz-surface: #ffffff;
+  --zzz-surface-hover: #f8f9fa;
+  --zzz-border: #dee2e6;
+  --zzz-border-bold: #adb5bd;
+  --zzz-accent: #1a1a1a;
+  --zzz-accent-hover: #000000;
+  --zzz-danger: #b86b6b;
+  --zzz-danger-soft: #8a5555;
+  --zzz-warning: #cc8a33;
+  --zzz-info: #5a9aa8;
+  --zzz-text: #2a2a2a;
+  --zzz-text-secondary: #555555;
+  --zzz-glow: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] body {
+  background-color: #ffffff;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0,0,0,0.02) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+  color: var(--zzz-text);
+}
+
+:root[data-theme="light"] body::after {
+  display: none;
+}
+
+:root[data-theme="light"] .navbar {
+  background: rgba(160, 160, 160, 0.95) !important;
+  border-bottom: 3px solid #444;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+:root[data-theme="light"] .navbar-brand {
+  color: #222 !important;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .navbar-nav .nav-link {
+  color: #444 !important;
+}
+
+:root[data-theme="light"] .navbar-nav .nav-link:hover {
+  color: #000 !important;
+  background: rgba(0,0,0,0.1);
+  border: 2px solid #444;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .btn-zzz-theme {
+  background: rgba(0, 0, 0, 0.1);
+  border: 3px solid #444;
+  color: #444;
+}
+
+:root[data-theme="light"] .btn-zzz-theme:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+/* ВСЕ КНОПКИ в светлой теме - одинаковый серый цвет как btn-zzz-secondary */
+:root[data-theme="light"] .btn-zzz-primary,
+:root[data-theme="light"] .btn-primary,
+:root[data-theme="light"] .btn-zzz-secondary {
+  background: rgba(0,0,0,0.08) !important;
+  color: #333 !important;
+  border: 3px solid #666 !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+:root[data-theme="light"] .btn-zzz-primary:hover,
+:root[data-theme="light"] .btn-primary:hover,
+:root[data-theme="light"] .btn-zzz-secondary:hover {
+  background: rgba(0,0,0,0.15) !important;
+  border-color: #444 !important;
+  color: #000 !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+}
+
+/* Мягкая красная кнопка опасности в светлой теме */
+:root[data-theme="light"] .btn-zzz-danger {
+  background: linear-gradient(135deg, #a87070 0%, #b86b6b 100%) !important;
+  color: #fff !important;
+  border: 3px solid #8a5555 !important;
+  box-shadow: 0 4px 15px rgba(184, 107, 107, 0.25) !important;
+}
+
+:root[data-theme="light"] .btn-zzz-danger:hover {
+  background: linear-gradient(135deg, #b86b6b 0%, #c87a7a 100%) !important;
+  border-color: #a87070 !important;
+  box-shadow: 0 6px 20px rgba(184, 107, 107, 0.35) !important;
+}
+
+/* Приглушённая красная кнопка для карточки заказа в светлой теме */
+:root[data-theme="light"] .btn-zzz-danger-soft,
+:root[data-theme="light"] .card.border-danger .btn-zzz-danger,
+:root[data-theme="light"] .card.border-danger .btn {
+  background: linear-gradient(135deg, #b08080 0%, #c09090 100%) !important;
+  color: #fff !important;
+  border: 3px solid #9a7070 !important;
+  box-shadow: 0 4px 12px rgba(160, 100, 100, 0.2) !important;
+}
+
+:root[data-theme="light"] .btn-zzz-danger-soft:hover,
+:root[data-theme="light"] .card.border-danger .btn-zzz-danger:hover,
+:root[data-theme="light"] .card.border-danger .btn:hover {
+  background: linear-gradient(135deg, #c09090 0%, #d0a0a0 100%) !important;
+  border-color: #b08080 !important;
+  box-shadow: 0 6px 18px rgba(160, 100, 100, 0.3) !important;
+  color: #fff !important;
+}
+
+:root[data-theme="light"] .btn-zzz-logout {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border: 3px solid #666 !important;
+  color: #555 !important;
+}
+
+:root[data-theme="light"] .btn-zzz-logout:hover {
+  background: #b86b6b !important;
+  border-color: #8a5555 !important;
+  color: #fff !important;
+}
+
+/* Стат-карточки в светлой теме - серые с жирной обводкой */
+:root[data-theme="light"] .card {
+  background: linear-gradient(135deg, #d8d8d8 0%, #c8c8c8 100%);
+  border: 3px solid #666;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+:root[data-theme="light"] .card.shadow-sm {
+  background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+  border: 5px solid #555;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+
+:root[data-theme="light"] .card.shadow-sm:hover {
+  border-color: #333;
+  box-shadow: 0 0 25px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.2) !important;
+  transform: translateY(-3px);
+}
+
+/* Мягкая красная рамка в светлой теме */
+:root[data-theme="light"] .card.border-danger {
+  border: 3px solid rgba(184, 107, 107, 0.7) !important;
+  box-shadow: 0 0 15px rgba(184, 107, 107, 0.2), 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+
+:root[data-theme="light"] .card.border-danger .card-header {
+  background: rgba(184, 107, 107, 0.15) !important;
+  border-bottom: 3px solid rgba(184, 107, 107, 0.5);
+  color: #8a4444 !important;
+}
+
+:root[data-theme="light"] .card-header {
+  background: rgba(0,0,0,0.08);
+  border-bottom: 3px solid #666;
+  color: #222;
+}
+
+:root[data-theme="light"] .card-footer {
+  background: rgba(0,0,0,0.05) !important;
+  border-top: 3px solid #888 !important;
+  color: #555 !important;
+}
+
+:root[data-theme="light"] .card-footer.bg-light {
+  background: rgba(0,0,0,0.05) !important;
+  color: #555 !important;
+}
+
+:root[data-theme="light"] .card-body {
+  color: #333 !important;
+}
+
+:root[data-theme="light"] .display-6 {
+  color: #222 !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .card-title {
+  color: #555 !important;
+}
+
+/* Таблицы в светлой теме - серые оттенки с разделяющей полоской */
+:root[data-theme="light"] .table {
+  color: #333;
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+}
+
+:root[data-theme="light"] .table thead th {
+  color: #444 !important;
+  background: rgba(0,0,0,0.08);
+  border: none;
+  border-bottom: 3px solid #666;
+  position: relative;
+}
+
+/* Разделяющая полоска под заголовками в светлой теме */
+:root[data-theme="light"] .table thead th::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="light"] .table thead tr {
+  border-bottom: 2px solid #888;
+}
+
+:root[data-theme="light"] .table tbody tr {
+  background: rgba(255,255,255,0.3);
+  border: none;
+}
+
+:root[data-theme="light"] .table tbody tr:nth-child(even) {
+  background: rgba(0,0,0,0.05);
+}
+
+:root[data-theme="light"] .table tbody tr:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+:root[data-theme="light"] .table td {
+  color: #333 !important;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,0.15);
+}
+
+:root[data-theme="light"] .card .table {
+  background: transparent;
+}
+
+:root[data-theme="light"] .card .table tbody tr,
+:root[data-theme="light"] .card .table thead th,
+:root[data-theme="light"] .card .table td {
+  border: none;
+}
+
+:root[data-theme="light"] .card .table tbody tr {
+  background: rgba(0,0,0,0.05);
+}
+
+:root[data-theme="light"] .card .table tbody tr:nth-child(even) {
+  background: rgba(0,0,0,0.08);
+}
+
+/* Формы в светлой теме - серые */
+:root[data-theme="light"] .form-control,
+:root[data-theme="light"] .form-select {
+  background: #d5d5d5;
+  border: 3px solid #777;
+  color: #333;
+}
+
+:root[data-theme="light"] .form-control:focus,
+:root[data-theme="light"] .form-select:focus {
+  background: #e0e0e0;
+  border-color: #444;
+  box-shadow: 0 0 0 0.25rem rgba(0,0,0,0.1);
+  color: #000;
+}
+
+/* Алерты в светлой теме - серые */
+:root[data-theme="light"] .alert {
+  background: rgba(0,0,0,0.08);
+  border: 3px solid #666;
+  color: #333 !important;
+}
+
+:root[data-theme="light"] .alert-danger {
+  background: rgba(184, 107, 107, 0.12) !important;
+  border: 3px solid #b86b6b !important;
+  color: #8a4444 !important;
+}
+
+:root[data-theme="light"] .alert-info {
+  background: rgba(13, 202, 240, 0.1);
+  border: 3px solid #0dcaf0;
+  color: #055 !important;
+}
+
+:root[data-theme="light"] .alert-success {
+  background: rgba(25, 135, 84, 0.1);
+  border: 3px solid #198754;
+  color: #0a4 !important;
+}
+
+/* Пагинация в светлой теме - серая */
+:root[data-theme="light"] .pagination .page-link {
+  background: #c8c8c8;
+  border: 3px solid #777;
+  color: #444;
+}
+
+:root[data-theme="light"] .pagination .page-link:hover {
+  background: #d8d8d8;
+  color: #000;
+  border-color: #444;
+}
+
+:root[data-theme="light"] .pagination .active .page-link {
+  background: #444;
+  border-color: #444;
+  color: #fff;
+}
+
+/* Значки в светлой теме - мягкие цвета */
+:root[data-theme="light"] .bg-success {
+  background: rgba(25, 135, 84, 0.2) !important;
+  color: #0a5;
+  border: 2px solid #198754;
+}
+
+:root[data-theme="light"] .bg-warning {
+  background: rgba(204, 138, 51, 0.2) !important;
+  color: #864;
+  border: 2px solid #cc8a33;
+}
+
+:root[data-theme="light"] .bg-danger {
+  background: rgba(184, 107, 107, 0.2) !important;
+  color: #844;
+  border: 2px solid #b86b6b;
+}
+
+/* Стиль "НОРМАЛЬНЫЙ" в светлой теме */
+:root[data-theme="light"] .bg-info,
+:root[data-theme="light"] .badge.bg-info {
+  background: rgba(90, 154, 168, 0.15) !important;
+  color: #4a7a88 !important;
+  border: 2px solid rgba(90, 154, 168, 0.6) !important;
+}
+
+/* Стиль "РАЗМЕЩЁН" в светлой теме - такой же как "НОРМАЛЬНЫЙ" */
+:root[data-theme="light"] .bg-primary,
+:root[data-theme="light"] .badge.bg-primary {
+  background: rgba(90, 154, 168, 0.15) !important;
+  color: #4a7a88 !important;
+  border: 2px solid rgba(90, 154, 168, 0.6) !important;
+}
+
+:root[data-theme="light"] .bg-secondary {
+  background: rgba(108, 117, 125, 0.2) !important;
+  color: #444;
+  border: 2px solid #6c757d;
+}
+
+/* ИСПРАВЛЕНИЕ: Белый бейдж в светлой теме */
+:root[data-theme="light"] .bg-white {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border: 2px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+:root[data-theme="light"] .text-danger {
+  color: #b86b6b !important;
+}
+
+:root[data-theme="light"] .zzz-text-glow {
+  color: #222 !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+:root[data-theme="light"] .nav-zzz {
+  border: 2px solid transparent;
+}
+
+:root[data-theme="light"] .nav-zzz:hover {
+  border: 2px solid #444;
+}
+
+/* Тексты в светлой теме */
+:root[data-theme="light"] .text-muted {
+  color: #555 !important;
+}
+
+:root[data-theme="light"] .text-white-50 {
+  color: #666 !important;
+}
+
+/* Скроллбокс в светлой теме */
+:root[data-theme="light"] .dashboard-scroll-box {
+  border: 2px solid #777;
+  background: rgba(0,0,0,0.05);
+}
+
+/* Селекты в светлой теме */
+:root[data-theme="light"] select.form-control,
+:root[data-theme="light"] select.form-select {
+  background-color: #d0d0d0 !important;
+  color: #333 !important;
+  border: 3px solid #777;
+}
+
+:root[data-theme="light"] select.form-control option,
+:root[data-theme="light"] select.form-select option {
+  background-color: #e0e0e0 !important;
+  color: #333 !important;
+}
+
+/* ИКОНКА ПОСТАВЩИКА (bi-truck) в светлой теме - темная как остальные иконки */
+:root[data-theme="light"] .bi-truck,
+:root[data-theme="light"] i.bi-truck,
+:root[data-theme="light"] .nav-link i.bi-truck,
+:root[data-theme="light"] h3 i.bi-truck,
+:root[data-theme="light"] .btn i.bi-truck {
+  color: #444 !important;
+  fill: #444 !important;
+  stroke: #444 !important;
+}
+
+:root[data-theme="light"] .nav-link:hover i.bi-truck {
+  color: #000 !important;
+  fill: #000 !important;
+}
+
+/* Все иконки Bootstrap в светлой теме - темные */
+:root[data-theme="light"] .bi,
+:root[data-theme="light"] i.bi {
+  color: #444;
+}
+
+:root[data-theme="light"] .nav-link:hover .bi,
+:root[data-theme="light"] .nav-link:hover i.bi {
+  color: #000;
+}
+
+/* Заголовки с иконками в светлой теме */
+:root[data-theme="light"] h3 i,
+:root[data-theme="light"] h4 i,
+:root[data-theme="light"] .card-title i {
+  color: #555;
+}
+/* Скроллбокс для дашборда */
+.dashboard-scroll-box {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+}
+
+.dashboard-scroll-box::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dashboard-scroll-box::-webkit-scrollbar-track {
+  background: rgba(127, 127, 127, 0.1);
+  border-radius: 4px;
+}
+
+.dashboard-scroll-box::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 127, 0.3);
+  border-radius: 4px;
+}
+
+.dashboard-scroll-box::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 127, 127, 0.5);
+}
+
+/* Фикс заголовков при скролле */
+.dashboard-scroll-box thead.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+:root[data-theme="light"] .dashboard-scroll-box thead.sticky-top {
+  background: #c8c8c8 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+:root[data-theme="dark"] .dashboard-scroll-box thead.sticky-top {
+  background: linear-gradient(135deg, rgba(20,20,25,1) 0%, rgba(10,10,15,1) 100%) !important;
+}
+
+/* Наследование фона для sticky */
+.bg-inherit {
+  background: inherit;
+}
+/* ==========================================
+   ИСПРАВЛЕНИЯ ДЛЯ СВЕТЛОЙ ТЕМЫ
+   ========================================== */
+
+/* Имя пользователя и полупрозрачные тексты */
+:root[data-theme="light"] .text-white-50 {
+  color: #666 !important;
+}
+
+:root[data-theme="light"] .text-muted {
+  color: #555 !important;
+}
+
+/* Кнопка регистрации (btn-success) в светлой теме */
+:root[data-theme="light"] .btn-success {
+  background-color: #5a5;
+  border: 3px solid #444;
+  color: #fff;
+}
+
+:root[data-theme="light"] .btn-success:hover {
+  background-color: #4a4;
+  border-color: #333;
+  color: #fff;
+}
+
+/* Инпуты в светлой теме */
+:root[data-theme="light"] .form-control {
+  background-color: #d0d0d0;
+  border: 3px solid #777;
+  color: #333;
+}
+
+/* Ссылки в светлой теме */
+:root[data-theme="light"] a {
+  color: #444;
+}
+
+:root[data-theme="light"] a:hover {
+  color: #222;
+}
+/* ==========================================
+   ФИКСЫ ДЛЯ supplyrequest_detail.html 
+   и других страниц с детальным просмотром
+   ========================================== */
+
+/* Тёмная тема - светлый текст для muted */
+:root[data-theme="dark"] .text-muted,
+:root[data-theme="dark"] .form-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+:root[data-theme="dark"] small.text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Алерты в тёмной теме - делаем светлый текст */
+:root[data-theme="dark"] .alert-info {
+  background: rgba(13, 202, 240, 0.15) !important;
+  border: 3px solid rgba(13, 202, 240, 0.5) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .alert-danger {
+  background: rgba(196, 92, 92, 0.12) !important;
+  border: 3px solid rgba(196, 92, 92, 0.4) !important;
+  color: #e8c0c0 !important;
+}
+
+:root[data-theme="dark"] .alert-secondary {
+  background: rgba(108, 117, 125, 0.15) !important;
+  border: 3px solid rgba(108, 117, 125, 0.5) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .alert-light {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 3px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* Заголовки внутри алертов */
+:root[data-theme="dark"] .alert-heading {
+  color: #ffffff !important;
+}
+
+/* Таблицы внутри карточек - принудительно белый текст */
+:root[data-theme="dark"] .card .table {
+  --bs-table-color: #ffffff;
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .card .table td,
+:root[data-theme="dark"] .card .table th {
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .card .table tbody tr {
+  color: #ffffff !important;
+}
+
+/* Ссылки внутри alert в темной теме */
+:root[data-theme="dark"] .alert a {
+  color: #a8d5ff !important;
+  text-decoration: underline;
+}
+
+:root[data-theme="dark"] .alert a:hover {
+  color: #ffffff !important;
+}
+
+/* Бейджи - мягкие цвета */
+:root[data-theme="dark"] .badge.bg-info {
+  background: rgba(90, 154, 168, 0.2) !important;
+  color: #7ac0d0 !important;
+  border: 2px solid rgba(90, 154, 168, 0.5);
+}
+
+:root[data-theme="dark"] .badge.bg-primary {
+  background: rgba(90, 154, 168, 0.2) !important;
+  color: #7ac0d0 !important;
+  border: 2px solid rgba(90, 154, 168, 0.5);
+}
+
+/* Фикс для sticky заголовков в таблицах */
+:root[data-theme="dark"] .table-light {
+  --bs-table-bg: rgba(255,255,255,0.05) !important;
+  --bs-table-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Светлая тема - серые алерты */
+:root[data-theme="light"] .alert-info {
+  color: #333 !important;
+  border: 3px solid #666;
+  background: rgba(0,0,0,0.08);
+}
+
+:root[data-theme="light"] .alert-danger {
+  color: #8a4444 !important;
+  border: 3px solid #b86b6b;
+  background: rgba(184, 107, 107, 0.08);
+}
+
+:root[data-theme="light"] .alert-secondary {
+  color: #333 !important;
+  border: 3px solid #666;
+  background: rgba(0,0,0,0.08);
+}
+
+/* Светлая тема - таблицы в карточках */
+:root[data-theme="light"] .card .alert {
+  background: rgba(0,0,0,0.06);
+  border: 2px solid #888;
+}
+
+:root[data-theme="light"] .card .alert-info {
+  background: rgba(13, 202, 240, 0.08);
+  border: 2px solid #0aa;
+}
+
+:root[data-theme="light"] .card .alert-secondary {
+  background: rgba(108, 117, 125, 0.08);
+  border: 2px solid #777;
+}
+
+:root[data-theme="light"] .card .alert-danger {
+  background: rgba(184, 107, 107, 0.08);
+  border: 2px solid #b86b6b;
+}
+/* Панель фильтров */
+.card .form-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  color: var(--zzz-text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.form-check-input {
+  background-color: rgba(255,255,255,0.1);
+  border: 3px solid rgba(255,255,255,0.5);
+}
+
+.form-check-input:checked {
+  background-color: var(--zzz-accent);
+  border-color: var(--zzz-accent);
+}
+
+:root[data-theme="light"] .form-check-input {
+  background-color: #bbb;
+  border: 3px solid #666;
+}
+
+:root[data-theme="light"] .form-check-input:checked {
+  background-color: #444;
+  border-color: #444;
+}
+
+
+.form-check.form-switch.zzz-switch-panel,
+.form-check.zzz-switch-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  padding-left: 0.95rem;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.form-check.form-switch.zzz-switch-panel .form-check-input,
+.form-check.zzz-switch-panel .form-check-input {
+  flex: 0 0 auto;
+  float: none;
+  margin: 0;
+  margin-left: 0;
+  align-self: center;
+}
+
+.form-check.form-switch.zzz-switch-panel .form-check-label,
+.form-check.zzz-switch-panel .form-check-label,
+.form-switch .form-check-label {
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--zzz-text);
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: 0.35px;
+  line-height: 1.15;
+}
+
+.form-check.form-switch.zzz-switch-panel .form-text,
+.form-check.zzz-switch-panel .form-text,
+.form-switch .form-text {
+  margin-top: 0.22rem;
+  color: #c2c7d0;
+  font-weight: 500;
+}
+
+.form-switch .form-check-input {
+  width: 2.6rem;
+  height: 1.42rem;
+  border-radius: 999px;
+  cursor: pointer;
+  background-size: 1rem 1rem;
+  background-color: rgba(255, 255, 255, 0.14);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e");
+  background-position: left center;
+}
+
+.form-switch .form-check-input:hover {
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.form-switch .form-check-input:focus {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.14);
+}
+
+.form-switch .form-check-input:checked {
+  background-color: #1b2330;
+  border-color: #6fa8ff;
+  background-position: right center;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e");
+  box-shadow: 0 0 0 0.18rem rgba(111, 168, 255, 0.12);
+}
+
+
+:root[data-theme="light"] .form-check.form-switch.zzz-switch-panel,
+:root[data-theme="light"] .form-check.zzz-switch-panel {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme="light"] .form-check.form-switch.zzz-switch-panel .form-check-label,
+:root[data-theme="light"] .form-check.zzz-switch-panel .form-check-label,
+:root[data-theme="light"] .form-switch .form-check-label {
+  color: #1f2937;
+}
+
+:root[data-theme="light"] .form-check.form-switch.zzz-switch-panel .form-text,
+:root[data-theme="light"] .form-check.zzz-switch-panel .form-text,
+:root[data-theme="light"] .form-switch .form-text {
+  color: #5b6574;
+}
+
+:root[data-theme="light"] .form-switch .form-check-input {
+  background-color: #d4d8df;
+  border-color: #8c95a3;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e");
+}
+
+:root[data-theme="light"] .form-switch .form-check-input:checked {
+  background-color: #334155;
+  border-color: #334155;
+}
+
+.btn-zzz-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--zzz-text);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+:root[data-theme="light"] .btn-zzz-secondary {
+  background: rgba(0,0,0,0.08);
+  color: #333;
+  border: 3px solid #666;
+}
+/* Моноширинный шрифт для артикулов и кодов */
+.zzz-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Градиент для заголовков */
+.zzz-gradient-text {
+  background: linear-gradient(135deg, var(--zzz-accent) 0%, var(--zzz-text) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root[data-theme="light"] .zzz-gradient-text {
+  background: linear-gradient(135deg, #333 0%, #666 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Мягкое свечение для критичных элементов */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(196, 92, 92, 0.4); }
+  50% { box-shadow: 0 0 15px rgba(196, 92, 92, 0.6), 0 0 25px rgba(196, 92, 92, 0.3); }
+}
+
+.bg-danger {
+  animation: pulse-glow 2s infinite;
+}
+
+:root[data-theme="light"] .bg-danger {
+  animation: none;
+  box-shadow: 0 2px 8px rgba(184, 107, 107, 0.25);
+}
+
+/* ==========================================
+   ДОПОЛНИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ КАРТОЧКИ border-danger
+   ========================================== */
+
+/* ИСПРАВЛЕНИЕ: Принудительно белый текст для всех элементов внутри card.border-danger в тёмной теме */
+:root[data-theme="dark"] .card.border-danger,
+:root[data-theme="dark"] .card.border-danger .card-body,
+:root[data-theme="dark"] .card.border-danger .card-footer,
+:root[data-theme="dark"] .card.border-danger .table,
+:root[data-theme="dark"] .card.border-danger .table td,
+:root[data-theme="dark"] .card.border-danger .table th,
+:root[data-theme="dark"] .card.border-danger .table tbody,
+:root[data-theme="dark"] .card.border-danger .table thead,
+:root[data-theme="dark"] .card.border-danger .table tr {
+  color: #ffffff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: table-light внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger .table-light,
+:root[data-theme="dark"] .card.border-danger .table-light th {
+  background-color: rgba(255,255,255,0.05) !important;
+  color: rgba(255,255,255,0.8) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Ссылки внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger a:not(.btn) {
+  color: #a8d5ff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Мелкий текст внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger small,
+:root[data-theme="dark"] .card.border-danger .small,
+:root[data-theme="dark"] .card.border-danger .form-text,
+:root[data-theme="dark"] .card.border-danger .text-muted {
+  color: rgba(255,255,255,0.7) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Значки внутри card.border-danger - ИСКЛЮЧАЕМ bg-white */
+:root[data-theme="dark"] .card.border-danger .badge:not(.bg-white) {
+  color: #ffffff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Иконки внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger i,
+:root[data-theme="dark"] .card.border-danger .bi {
+  color: #ffffff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Футер карточки border-danger */
+:root[data-theme="dark"] .card.border-danger .card-footer {
+  background: rgba(196, 92, 92, 0.1) !important;
+  border-top: 3px solid rgba(196, 92, 92, 0.4) !important;
+  color: rgba(255,255,255,0.8) !important;
+}
+
+:root[data-theme="dark"] .card.border-danger .card-footer .text-muted {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Формы внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger .form-control,
+:root[data-theme="dark"] .card.border-danger .form-select {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.3);
+  color: #ffffff;
+}
+
+/* ИСПРАВЛЕНИЕ: Заголовки внутри card.border-danger */
+:root[data-theme="dark"] .card.border-danger h1,
+:root[data-theme="dark"] .card.border-danger h2,
+:root[data-theme="dark"] .card.border-danger h3,
+:root[data-theme="dark"] .card.border-danger h4,
+:root[data-theme="dark"] .card.border-danger h5,
+:root[data-theme="dark"] .card.border-danger h6,
+:root[data-theme="dark"] .card.border-danger .card-title {
+  color: #ffffff !important;
+}
+
+/* ИСПРАВЛЕНИЕ: Для светлой темы card.border-danger */
+:root[data-theme="light"] .card.border-danger,
+:root[data-theme="light"] .card.border-danger .card-body,
+:root[data-theme="light"] .card.border-danger .table,
+:root[data-theme="light"] .card.border-danger .table td,
+:root[data-theme="light"] .card.border-danger .table th {
+  color: #333 !important;
+}
+
+:root[data-theme="light"] .card.border-danger .card-footer {
+  background: rgba(184, 107, 107, 0.1) !important;
+  border-top: 3px solid rgba(184, 107, 107, 0.4) !important;
+  color: #555 !important;
+}
