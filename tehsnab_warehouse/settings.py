@@ -7,7 +7,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
-DJANGO_ENV = os.getenv('DJANGO_ENV', 'development').lower()
+IS_RAILWAY = bool(os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('RAILWAY_PROJECT_ID'))
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'production' if IS_RAILWAY else 'development').lower()
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
@@ -22,6 +23,15 @@ DEBUG = os.getenv(
 
 _allowed_hosts_env = os.getenv('DJANGO_ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(',') if host.strip()]
+
+if IS_RAILWAY:
+    railway_public_domain = (os.getenv('RAILWAY_PUBLIC_DOMAIN') or '').strip()
+    if railway_public_domain:
+        ALLOWED_HOSTS.append(railway_public_domain)
+    # Railway preview/production domains
+    ALLOWED_HOSTS.append('.up.railway.app')
+
+ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS))
 if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '[::1]', '0.0.0.0'])
 elif not ALLOWED_HOSTS:
@@ -155,6 +165,13 @@ if WHITENOISE_AVAILABLE:
 
 _csrf_trusted_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_trusted_origins_env.split(',') if origin.strip()]
+
+if IS_RAILWAY:
+    railway_public_domain = (os.getenv('RAILWAY_PUBLIC_DOMAIN') or '').strip()
+    if railway_public_domain:
+        CSRF_TRUSTED_ORIGINS.append(f'https://{railway_public_domain}')
+
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
